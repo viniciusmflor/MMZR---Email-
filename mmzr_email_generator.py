@@ -74,16 +74,10 @@ class MMZREmailGenerator:
                     if performance_data:
                         return performance_data
         
-        # Caso não encontre através da palavra "Performance", criar dados simulados
-        if not performance_data:
-            # Obter o mês atual
-            mes_atual = self.meses_pt[datetime.now().month]
-            performance_data = [
-                {'periodo': f"{mes_atual}:", 'carteira': 2.38, 'benchmark': 1.45, 'diferenca': 0.93},
-                {'periodo': "No ano:", 'carteira': 8.76, 'benchmark': 5.32, 'diferenca': 3.44}
-            ]
-        
-        return performance_data
+        # Se não encontrou, lançar erro
+        error_msg = "Erro: Não foi possível encontrar dados de 'Performance' na planilha."
+        print(error_msg)
+        raise ValueError(error_msg)
     
     def extract_financial_return(self, df):
         """Extrai dados de retorno financeiro"""
@@ -112,8 +106,10 @@ class MMZREmailGenerator:
                                 # Se não conseguir converter, continuar procurando
                                 pass
         
-        # Se não encontrou, retornar valor simulado
-        return 1140.27
+        # Se não encontrou, lançar erro
+        error_msg = "Erro: Não foi possível encontrar 'Retorno Financeiro' na planilha."
+        print(error_msg)
+        raise ValueError(error_msg)
     
     def extract_highlight_strategies(self, df):
         """Extrai estratégias de destaque (máximo 2)"""
@@ -142,8 +138,10 @@ class MMZREmailGenerator:
                         if strategies:
                             return strategies[:2]  # Garantir máximo 2 estratégias
         
-        # Se não encontrou, retornar valores simulados (limitar a 2)
-        return ["RETORNO ABSOLUTO (3,12%) > RENDA VARIÁVEL (8,54%)", "OCEANA LONG BIASED ADVISORY FIC FI MULT (7,83%) > SHARP LB ADVISORY FIC FIA (12,57%)"][:2]
+        # Se não encontrou, lançar erro
+        error_msg = "Erro: Não foi possível encontrar 'Estratégias de Destaque' na planilha."
+        print(error_msg)
+        raise ValueError(error_msg)
     
     def extract_promoter_assets(self, df):
         """Extrai ativos promotores (apenas os positivos, máximo 2)"""
@@ -183,14 +181,10 @@ class MMZREmailGenerator:
                         if len(assets) > 0:
                             return assets[:2]  # Garantir máximo de 2 ativos
         
-        # Se não encontrou ou não encontrou positivos suficientes, retornar valores simulados positivos (máximo 2)
-        if len(assets) == 0:
-            return ["OCEANA LONG BIASED ADVISORY FIC FI MULT (7,83%)", "SHARP LB ADVISORY FIC FIA (12,57%)"][:2]
-        elif len(assets) == 1:
-            assets.append("SHARP LB ADVISORY FIC FIA (12,57%)")
-            return assets
-        
-        return assets[:2]  # Garantir máximo de 2 ativos
+        # Se não encontrou, lançar erro
+        error_msg = "Erro: Não foi possível encontrar 'Ativos Promotores' na planilha ou nenhum ativo com rendimento positivo foi encontrado."
+        print(error_msg)
+        raise ValueError(error_msg)
     
     def extract_detractor_assets(self, df):
         """Extrai ativos detratores (apenas os negativos, máximo 2)"""
@@ -230,14 +224,10 @@ class MMZREmailGenerator:
                         if len(assets) > 0:
                             return assets[:2]  # Garantir máximo de 2 ativos
         
-        # Se não encontrou, retornar valores simulados negativos (máximo 2)
-        if len(assets) == 0:
-            return ["ALLOCATION GLOBAL EQUITIES FI MULT (-1,66%)", "BTG PACTUAL DISCOVERY FI MULT (-0,85%)"][:2]
-        elif len(assets) == 1:
-            assets.append("BTG PACTUAL DISCOVERY FI MULT (-0,85%)")
-            return assets
-        
-        return assets[:2]  # Garantir máximo de 2 ativos
+        # Se não encontrou, lançar erro
+        error_msg = "Erro: Não foi possível encontrar 'Ativos Detratores' na planilha ou nenhum ativo com rendimento negativo foi encontrado."
+        print(error_msg)
+        raise ValueError(error_msg)
     
     def format_currency(self, value):
         """Formata valor como moeda brasileira"""
@@ -266,27 +256,89 @@ class MMZREmailGenerator:
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <meta name="supported-color-schemes" content="light">
     <!--[if mso]>
     <style type="text/css">
     body, table, td {{font-family: Arial, Helvetica, sans-serif !important;}}
     </style>
     <![endif]-->
+    <style>
+    /* Estilos para forçar modo claro em dispositivos com tema escuro */
+    :root {{
+        color-scheme: light;
+        supported-color-schemes: light;
+    }}
+    @media (prefers-color-scheme: dark) {{
+        body,
+        .body-wrapper {{
+            background-color: #f4f4f4 !important;
+        }}
+        .content-wrapper {{
+            background-color: #ffffff !important;
+            color: #333333 !important;
+        }}
+        .header-bg {{
+            background-color: #0D2035 !important;
+        }}
+        .header-text {{
+            color: #ffffff !important;
+        }}
+        .section-bg {{
+            background-color: #ffffff !important;
+        }}
+        .performance-header {{
+            color: #0D2035 !important;
+            border-bottom-color: #e0e0e0 !important;
+        }}
+        .data-table {{
+            background-color: #ffffff !important;
+        }}
+        .table-header {{
+            background-color: #f8f9fa !important;
+            color: #0D2035 !important;
+        }}
+        .highlight-section {{
+            background-color: #f8f9fa !important;
+        }}
+        .promoters-section {{
+            background-color: #e8f5e9 !important;
+        }}
+        .detractors-section {{
+            background-color: #ffebee !important;
+        }}
+        td, th, p, h1, h2, h3, h4, h5, h6, li {{
+            color: inherit !important;
+        }}
+        .portfolio-header {{
+            background-color: #0D2035 !important;
+            color: #ffffff !important;
+        }}
+    }}
+    </style>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif; line-height: 1.6; color: #333333; background-color: #f4f4f4;">
+<body class="body-wrapper" style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif; line-height: 1.4; color: #333333; background-color: #f4f4f4;">
     <table role="presentation" style="width: 100%; border-collapse: collapse; border: 0; border-spacing: 0; background: #f4f4f4;">
         <tr>
             <td align="center" style="padding: 0;">
-                <table role="presentation" style="width: 100%; max-width: 800px; border-collapse: collapse; border: 0; border-spacing: 0; text-align: left; background: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <table role="presentation" class="content-wrapper" style="width: 100%; max-width: 800px; border-collapse: collapse; border: 0; border-spacing: 0; text-align: left; background: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
                     <!-- Header -->
                     <tr>
                         <td style="padding: 0;">
-                            <table role="presentation" style="width: 100%; border-collapse: collapse; background: linear-gradient(135deg, #061844 0%, #083266 100%);">
+                            <table role="presentation" class="header-bg" style="width: 100%; border-collapse: collapse; background: #0D2035;">
                                 <tr>
-                                    <td style="padding: 40px 30px; text-align: center;">
-                                        <!-- Logo MMZR -->
-                                        <img src="documentos/img/LogoAzul_MMZR.jpg" alt="MMZR Family Office" style="max-width: 200px; height: auto; margin-bottom: 20px;">
-                                        <h1 style="margin: 0; font-size: 28px; font-weight: 300; color: #ffffff; letter-spacing: 1px;">MMZR Family Office</h1>
-                                        <p style="margin: 10px 0 0 0; font-size: 16px; color: #ffffff; opacity: 0.9;">Relatório Mensal de Performance - {mes} de {ano}</p>
+                                    <td style="padding: 10px;">
+                                        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                            <tr>
+                                                <td style="text-align: center; vertical-align: middle; width: 120px;">
+                                                    <img src="documentos/img/logo-MMZR-azul.png" alt="MMZR Family Office" style="width: 120px; height: 100px; display: inline-block;">
+                                                </td>
+                                                <td style="text-align: left; vertical-align: middle; padding-left: 10px;">
+                                                    <p class="header-text" style="margin: 0; font-size: 21px; color: #ffffff; opacity: 0.9; line-height: 1.2;">MMZR Family Office</p>
+                                                    <p class="header-text" style="margin: 0; font-size: 14px; color: #ffffff; opacity: 0.9; line-height: 1.2;">Relatório Mensal de Performance - {mes} de {ano}</p>
+                                                </td>
+                                            </tr>
+                                        </table>
                                     </td>
                                 </tr>
                             </table>
@@ -295,11 +347,10 @@ class MMZREmailGenerator:
                     
                     <!-- Content -->
                     <tr>
-                        <td style="padding: 30px;">
-                            <h2 style="font-size: 20px; color: #061844; margin-bottom: 20px;">Olá {client_name},</h2>
+                        <td class="section-bg" style="padding: 20px 20px; background-color: #ffffff;">
+                            <h2 style="font-size: 15px; color: #0D2035; margin-bottom: 12px; margin-top: 0;">Olá {client_name},</h2>
                             
-                            <p style="margin-bottom: 20px;">Segue o relatório mensal com o desempenho de suas carteiras referente a <strong>{data_ref.strftime('%d/%m/%Y')}</strong>.</p>
-"""
+                            <p style="margin-top: 0; margin-bottom: 9px; ">Segue o relatório mensal com o desempenho de suas carteiras referente a <strong>{data_ref.strftime('%d/%m/%Y')}</strong>.</p>"""
         
         # Adicionar cada carteira
         for portfolio in portfolios_data:
@@ -308,11 +359,11 @@ class MMZREmailGenerator:
         # Footer
         html += f"""
                             <!-- Disclaimer -->
-                            <table role="presentation" style="width: 100%; margin-top: 30px; border-collapse: collapse;">
+                            <table role="presentation" style="width: 100%; margin-top: 20px; border-collapse: collapse;">
                                 <tr>
-                                    <td style="padding: 15px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;">
-                                        <p style="margin: 0; color: #856404; font-size: 13px;">
-                                            <strong>Aviso Legal:</strong> Este relatório é destinado exclusivamente ao uso interno e não deve ser reproduzido ou distribuído sem autorização prévia. Os rendimentos passados não garantem resultados futuros.
+                                    <td style="padding: 10px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;">
+                                        <p style="margin: 0; color: #856404; font-size: 12px;">
+                                            <strong>Aviso Legal:</strong> Os rendimentos passados não garantem resultados futuros.
                                         </p>
                                     </td>
                                 </tr>
@@ -322,10 +373,10 @@ class MMZREmailGenerator:
                     
                     <!-- Footer -->
                     <tr>
-                        <td style="background-color: #f8f9fa; padding: 20px 30px; text-align: center;">
-                            <p style="margin: 0 0 5px 0; color: #666666; font-size: 12px;">MMZR Family Office | Gestão de Patrimônio</p>
-                            <p style="margin: 0 0 5px 0; color: #666666; font-size: 12px;">Este é um email automático. Por favor, não responda.</p>
-                            <p style="margin: 0; color: #666666; font-size: 12px;">© {ano} MMZR Family Office. Todos os direitos reservados.</p>
+                        <td style="background-color: #f8f9fa; padding: 12px 20px; text-align: center;">
+                            <p style="margin: 0 0 3px 0; color: #666666; font-size: 11px;">MMZR Family Office | Gestão de Patrimônio</p>
+                            <p style="margin: 0 0 3px 0; color: #666666; font-size: 11px;">Este é um email automático. Por favor, não responda.</p>
+                            <p style="margin: 0; color: #666666; font-size: 11px;">© {ano} MMZR Family Office. Todos os direitos reservados.</p>
                         </td>
                     </tr>
                 </table>
@@ -352,14 +403,14 @@ class MMZREmailGenerator:
         
         html = f"""
                             <!-- Carteira: {name} -->
-                            <table role="presentation" style="width: 100%; margin: 30px 0; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                            <table role="presentation" style="width: 100%; margin: 20px 0 0 0; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background-color: #ffffff;">
                                 <tr>
-                                    <td style="background-color: #061844; color: #ffffff; padding: 15px 20px;">
-                                        <h3 style="margin: 0; font-size: 18px; font-weight: 500;">{name} <span style="font-weight: 300; font-size: 14px; margin-left: 10px; opacity: 0.8;">| {portfolio_type}</span></h3>
+                                    <td class="header-bg portfolio-header" style="background-color: #0D2035; color: #ffffff; padding: 10px 15px;">
+                                        <h3 style="margin: 0; font-size: 16px; font-weight: 500;">{name} <span style="font-weight: 300; font-size: 13px; margin-left: 8px; opacity: 0.8;">| {portfolio_type}</span></h3>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style="padding: 20px;">
+                                    <td class="section-bg" style="padding: 15px; background-color: #ffffff;">
                                         {self.generate_performance_table(performance_data, retorno_financeiro)}
                                         
                                         {self.generate_highlight_strategies_section(estrategias_destaque)}
@@ -398,14 +449,14 @@ class MMZREmailGenerator:
                 break
         
         html = """
-                                        <h4 style="font-size: 20px; color: #061844; margin: 0 0 15px 0; font-weight: 500; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px;">Performance</h4>
-                                        <table role="presentation" style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 25px;">
+                                        <h4 class="performance-header" style="font-size: 18px; color: #0D2035; margin: 0 0 12px 0; font-weight: 500; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px;">Performance</h4>
+                                        <table role="presentation" class="data-table" style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 15px; background-color: #ffffff;">
                                             <thead>
                                                 <tr>
-                                                    <th style="background-color: #f8f9fa; color: #061844; font-weight: 600; padding: 12px 8px; text-align: left; border-bottom: 2px solid #dee2e6;">Período</th>
-                                                    <th style="background-color: #f8f9fa; color: #061844; font-weight: 600; padding: 12px 8px; text-align: center; border-bottom: 2px solid #dee2e6;">Carteira</th>
-                                                    <th style="background-color: #f8f9fa; color: #061844; font-weight: 600; padding: 12px 8px; text-align: center; border-bottom: 2px solid #dee2e6;">Benchmark</th>
-                                                    <th style="background-color: #f8f9fa; color: #061844; font-weight: 600; padding: 12px 8px; text-align: center; border-bottom: 2px solid #dee2e6;">Carteira vs. Benchmark</th>
+                                                    <th class="table-header" style="background-color: #f8f9fa; color: #0D2035; font-weight: 600; padding: 8px 6px; text-align: left; border-bottom: 1px solid #dee2e6;">Período</th>
+                                                    <th class="table-header" style="background-color: #f8f9fa; color: #0D2035; font-weight: 600; padding: 8px 6px; text-align: center; border-bottom: 1px solid #dee2e6;">Carteira</th>
+                                                    <th class="table-header" style="background-color: #f8f9fa; color: #0D2035; font-weight: 600; padding: 8px 6px; text-align: center; border-bottom: 1px solid #dee2e6;">Benchmark</th>
+                                                    <th class="table-header" style="background-color: #f8f9fa; color: #0D2035; font-weight: 600; padding: 8px 6px; text-align: center; border-bottom: 1px solid #dee2e6;">Carteira vs. Benchmark</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -424,10 +475,10 @@ class MMZREmailGenerator:
             
             html += f"""
                                                 <tr>
-                                                    <td style="padding: 10px 8px; text-align: left; border-bottom: 1px solid #dee2e6;">{periodo}</td>
-                                                    <td style="padding: 10px 8px; text-align: center; border-bottom: 1px solid #dee2e6; color: {carteira_color}; font-weight: 500;">{self.format_percentage(carteira)}</td>
-                                                    <td style="padding: 10px 8px; text-align: center; border-bottom: 1px solid #dee2e6;">{self.format_percentage(benchmark)}</td>
-                                                    <td style="padding: 10px 8px; text-align: center; border-bottom: 1px solid #dee2e6; color: {diferenca_color}; font-weight: 500;">{self.format_percentage(diferenca).replace('%', ' p.p.')}</td>
+                                                    <td style="padding: 8px 6px; text-align: left; border-bottom: 1px solid #dee2e6; background-color: #ffffff;">{periodo}</td>
+                                                    <td style="padding: 8px 6px; text-align: center; border-bottom: 1px solid #dee2e6; color: {carteira_color}; font-weight: 500; background-color: #ffffff;">{self.format_percentage(carteira)}</td>
+                                                    <td style="padding: 8px 6px; text-align: center; border-bottom: 1px solid #dee2e6; background-color: #ffffff;">{self.format_percentage(benchmark)}</td>
+                                                    <td style="padding: 8px 6px; text-align: center; border-bottom: 1px solid #dee2e6; color: {diferenca_color}; font-weight: 500; background-color: #ffffff;">{self.format_percentage(diferenca).replace('%', ' p.p.')}</td>
                                                 </tr>
 """
         
@@ -436,8 +487,8 @@ class MMZREmailGenerator:
             color = "#28a745" if retorno_financeiro > 0 else "#dc3545" if retorno_financeiro < 0 else "#333333"
             html += f"""
                                                 <tr>
-                                                    <td style="padding: 10px 8px; text-align: left; border-bottom: 1px solid #dee2e6; font-weight: 500;">Retorno Financeiro:</td>
-                                                    <td style="padding: 10px 8px; text-align: center; border-bottom: 1px solid #dee2e6; color: {color}; font-weight: 500;" colspan="3">{self.format_currency(retorno_financeiro)}</td>
+                                                    <td style="padding: 8px 6px; text-align: left; border-bottom: 1px solid #dee2e6; font-weight: 500; background-color: #ffffff;">Retorno Financeiro:</td>
+                                                    <td style="padding: 8px 6px; text-align: center; border-bottom: 1px solid #dee2e6; color: {color}; font-weight: 500; background-color: #ffffff;" colspan="3">{self.format_currency(retorno_financeiro)}</td>
                                                 </tr>
 """
         
@@ -451,8 +502,8 @@ class MMZREmailGenerator:
         """Gera a seção de retorno financeiro"""
         
         html = f"""
-                                        <h4 style="font-size: 20px; color: #061844; margin: 25px 0 15px 0; font-weight: 500; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px;">Retorno Financeiro</h4>
-                                        <p style="font-size: 16px; margin: 10px 0 25px 0; padding: 15px; background-color: #f8f9fa; border-radius: 5px; text-align: center; font-weight: 500; color: #061844;">
+                                        <h4 class="performance-header" style="font-size: 18px; color: #0D2035; margin: 20px 0 12px 0; font-weight: 500; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px;">Retorno Financeiro</h4>
+                                        <p style="font-size: 15px; margin: 8px 0 15px 0; padding: 10px; background-color: #f8f9fa; border-radius: 5px; text-align: center; font-weight: 500; color: #0D2035;">
                                             {self.format_currency(retorno_financeiro)}
                                         </p>
 """
@@ -462,13 +513,13 @@ class MMZREmailGenerator:
         """Gera a seção de estratégias de destaque"""
         
         html = """
-                                        <h4 style="font-size: 20px; color: #061844; margin: 25px 0 15px 0; font-weight: 500; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px;">Estratégias de Destaque</h4>
-                                        <ul style="margin: 10px 0 25px 0; padding: 15px 15px 15px 35px; background-color: #f8f9fa; border-radius: 5px; color: #333333;">
+                                        <h4 class="performance-header" style="font-size: 18px; color: #0D2035; margin: 20px 0 12px 0; font-weight: 500; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px;">Estratégias de Destaque</h4>
+                                        <ul class="highlight-section" style="margin: 8px 0 15px 0; padding: 10px 10px 10px 30px; background-color: #f8f9fa; border-radius: 5px; color: #333333;">
 """
         
         for estrategia in estrategias:
             html += f"""
-                                            <li style="margin-bottom: 8px;">{estrategia}</li>
+                                            <li style="margin-bottom: 6px; font-size: 13px;">{estrategia}</li>
 """
         
         html += """
@@ -480,8 +531,8 @@ class MMZREmailGenerator:
         """Gera a seção de ativos promotores"""
         
         html = """
-                                        <h4 style="font-size: 20px; color: #061844; margin: 25px 0 15px 0; font-weight: 500; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px;">Ativos Promotores</h4>
-                                        <ul style="margin: 10px 0 25px 0; padding: 15px 15px 15px 35px; background-color: #e8f5e9; border-radius: 5px; color: #2e7d32;">
+                                        <h4 class="performance-header" style="font-size: 18px; color: #0D2035; margin: 20px 0 12px 0; font-weight: 500; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px;">Ativos Promotores</h4>
+                                        <ul class="promoters-section" style="margin: 8px 0 15px 0; padding: 10px 10px 10px 30px; background-color: #e8f5e9; border-radius: 5px; color: #2e7d32;">
 """
         
         for ativo in ativos:
@@ -500,7 +551,7 @@ class MMZREmailGenerator:
                     pass
                     
             html += f"""
-                                            <li style="margin-bottom: 8px;">{ativo_formatado}</li>
+                                            <li style="margin-bottom: 6px; font-size: 13px;">{ativo_formatado}</li>
 """
         
         html += """
@@ -512,13 +563,13 @@ class MMZREmailGenerator:
         """Gera a seção de ativos detratores"""
         
         html = """
-                                        <h4 style="font-size: 20px; color: #061844; margin: 25px 0 15px 0; font-weight: 500; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px;">Ativos Detratores</h4>
-                                        <ul style="margin: 10px 0 25px 0; padding: 15px 15px 15px 35px; background-color: #ffebee; border-radius: 5px; color: #c62828;">
+                                        <h4 class="performance-header" style="font-size: 18px; color: #0D2035; margin: 20px 0 12px 0; font-weight: 500; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px;">Ativos Detratores</h4>
+                                        <ul class="detractors-section" style="margin: 8px 0 15px 0; padding: 10px 10px 10px 30px; background-color: #ffebee; border-radius: 5px; color: #c62828;">
 """
         
         for ativo in ativos:
             html += f"""
-                                            <li style="margin-bottom: 8px;">{ativo}</li>
+                                            <li style="margin-bottom: 6px; font-size: 13px;">{ativo}</li>
 """
         
         html += """
@@ -593,34 +644,9 @@ def process_and_generate_report(excel_path, client_config):
                 
                 portfolios_data.append(portfolio_data)
             else:
-                print(f"Aviso: Aba '{sheet_name}' não encontrada no Excel. Usando dados simulados.")
-                
-                # Usar dados simulados para esta carteira
-                portfolio_data = {
-                    'name': portfolio_config.get('name', 'Carteira'),
-                    'type': portfolio_config.get('type', 'Diversificada'),
-                    'data': {
-                        'performance': [
-                            {'periodo': 'Mês atual', 'carteira': 2.38, 'benchmark': 1.45, 'diferenca': 0.93},
-                            {'periodo': 'Ano atual', 'carteira': 8.76, 'benchmark': 5.32, 'diferenca': 3.44}
-                        ],
-                        'retorno_financeiro': 1140.27,
-                        'estrategias_destaque': [
-                            "RETORNO ABSOLUTO (3,12%) > RENDA VARIÁVEL (8,54%)",
-                            "OCEANA LONG BIASED ADVISORY FIC FI MULT (7,83%) > SHARP LB ADVISORY FIC FIA (12,57%)"
-                        ],
-                        'ativos_promotores': [
-                            "OCEANA LONG BIASED ADVISORY FIC FI MULT (7,83%)",
-                            "SHARP LB ADVISORY FIC FIA (12,57%)"
-                        ],
-                        'ativos_detratores': [
-                            "ALLOCATION GLOBAL EQUITIES FI MULT (-1,66%)",
-                            "BTG PACTUAL DISCOVERY FI MULT (-0,85%)"
-                        ]
-                    }
-                }
-                
-                portfolios_data.append(portfolio_data)
+                error_msg = f"Erro: Aba '{sheet_name}' não encontrada no Excel. O relatório não pode ser gerado."
+                print(error_msg)
+                raise ValueError(error_msg)
         
         # Gerar o HTML do e-mail
         html_content = generator.generate_html_email(client_name, data_ref, portfolios_data)
