@@ -9,14 +9,17 @@ Este projeto implementa um sistema de geração automatizada de relatórios mens
 - Geração de relatórios de performance em formato HTML moderno e responsivo
 - Compatibilidade entre macOS (desenvolvimento) e Windows (produção)
 - Integração nativa com Outlook no Windows para envio automático de emails
-- Suporte a múltiplas carteiras por cliente
+- **Busca de clientes por nome ou email**
+- **Suporte a múltiplas carteiras por cliente em um único relatório**
+- **Inclusão do link para a carta mensal atual**
+- **Observação personalizada sobre bankers em cópia**
 - Visualização de dados relevantes para o cliente:
   - Performance da carteira (mensal e anual)
   - Retorno financeiro integrado à tabela de performance
   - Estratégias de destaque (limitadas a 2)
   - Ativos promotores com indicação positiva (limitados a 2)
   - Ativos detratores (limitados a 2)
-- Compatibilidade com modo escuro em dispositivos móveis
+- Compatibilidade otimizada com dispositivos móveis (iOS e Android)
 
 ## Estrutura do Projeto
 
@@ -26,19 +29,21 @@ Este projeto implementa um sistema de geração automatizada de relatórios mens
 - `documentos/`: Pasta com arquivos de dados e recursos visuais
   - `dados/`: Planilhas Excel com dados financeiros reais
   - `img/`: Imagens e logotipos usados nos relatórios
+- `recursos_email/`: Pasta com recursos utilizados nos emails (logo)
 
 ## Formato das Planilhas de Dados
 
 O sistema utiliza duas planilhas principais:
 
 1. **Planilha Inteli.xlsm**
-   - Aba principal: `Base Clientes`
-   - Dados: informações básicas dos clientes (código, nome, carteira, estratégia, benchmark)
+   - Aba principal: `Base Clientes` - informações básicas dos clientes
+   - Aba adicional: `Base Consolidada` - informações adicionais, incluindo dados dos bankers
+   - Dados: informações básicas dos clientes (nome, código da carteira, nome da carteira, estratégia, benchmark)
 
 2. **Planilha Inteli - dados de rentabilidade.xlsx**
-   - Contém os dados de performance de cada cliente identificados pelo código da carteira
+   - Contém os dados de performance de cada carteira identificados pelo código da carteira
 
-Se algum dado não for encontrado, o sistema usará valores simulados para preencher o relatório.
+O sistema agora identifica clientes pelo nome ou email, permitindo visualizar todas as carteiras de um mesmo cliente em um único relatório. Se algum dado não for encontrado, o sistema usará valores simulados para preencher o relatório.
 
 ## Requisitos
 
@@ -77,10 +82,16 @@ python mmzr_integracao_real.py --listar
 
 ### Gerar Relatório para um Cliente Específico
 
-Para gerar um relatório para um cliente específico usando seu código:
+Para gerar um relatório para um cliente específico usando seu nome ou email:
 
 ```bash
-python mmzr_integracao_real.py --cliente [CÓDIGO]
+python mmzr_integracao_real.py --cliente "Nome do Cliente"
+```
+
+ou
+
+```bash
+python mmzr_integracao_real.py --cliente "email@cliente.com"
 ```
 
 ### Gerar e Enviar Relatório (Windows)
@@ -88,7 +99,7 @@ python mmzr_integracao_real.py --cliente [CÓDIGO]
 Para gerar e enviar por email (somente no Windows):
 
 ```bash
-python mmzr_integracao_real.py --cliente [CÓDIGO] --enviar
+python mmzr_integracao_real.py --cliente "Nome do Cliente" --enviar
 ```
 
 ### Gerar Relatórios para Todos os Clientes
@@ -100,6 +111,14 @@ python mmzr_integracao_real.py
 ```
 
 Quando solicitado, você pode escolher se deseja enviar os emails (funciona apenas no Windows).
+
+### Criar Dados de Exemplo
+
+Para criar dados de exemplo para testes:
+
+```bash
+python mmzr_integracao_real.py --criar-exemplo
+```
 
 ### Verificar Compatibilidade do Sistema
 
@@ -118,7 +137,6 @@ Para personalizar o estilo visual do relatório, edite as funções de geração
 - `generate_html_email`: Template principal do e-mail
 - `generate_portfolio_section`: Seção de cada carteira
 - `generate_performance_table`: Tabela de performance
-- `generate_financial_return_section`: Seção de retorno financeiro
 - `generate_highlight_strategies_section`: Seção de estratégias de destaque
 - `generate_promoter_assets_section`: Seção de ativos promotores
 - `generate_detractor_assets_section`: Seção de ativos detratores
@@ -130,6 +148,8 @@ O sistema inclui otimizações para garantir que os emails sejam exibidos corret
 - Design responsivo que se adapta a diferentes tamanhos de tela
 - Metadados específicos para forçar o modo claro em dispositivos com tema escuro
 - Estilos CSS inline para máxima compatibilidade com clientes de email
+- Otimizações específicas para iOS e Android
+- Ajustes proporcionais para diferentes tamanhos de tela
 
 ## Integração com Outlook (Windows)
 

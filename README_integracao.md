@@ -8,19 +8,23 @@ O sistema utiliza duas planilhas principais:
 
 1. **Planilha Inteli.xlsm**
    - Localização: `documentos/dados/Planilha Inteli.xlsm`
-   - Aba principal: `Base Clientes`
+   - Abas utilizadas:
+     - `Base Clientes`: Dados principais dos clientes e suas carteiras
+     - `Base Consolidada`: Informações adicionais, incluindo dados dos bankers
    - Dados contidos:
+     - Nome cliente (identificador principal)
+     - Email cliente (identificador alternativo)
      - Código carteira smart
-     - Nome cliente
      - Nome carteira
      - Estratégia carteira
      - Benchmark
+     - Informações do banker (na aba Base Consolidada)
 
 2. **Planilha Inteli - dados de rentabilidade.xlsx**
    - Localização: `documentos/dados/Planilha Inteli - dados de rentabilidade.xlsx`
    - Aba principal: `Sheet1`
    - Dados contidos:
-     - Código carteira smart (chave de ligação)
+     - Código carteira smart (chave de ligação com a carteira)
      - Rentabilidade Carteira Mês
      - Rentabilidade Carteira No Ano
      - Benchmark Mês
@@ -52,13 +56,15 @@ A classe `MMZRCompatibilidade` gerencia essas diferenças entre plataformas.
 O processo de integração é realizado pelo script `mmzr_integracao_real.py`, que:
 
 1. Carrega as duas planilhas
-2. Identifica os clientes que existem em ambas as planilhas (usando o código carteira smart como chave)
-3. Para cada cliente encontrado, extrai:
+2. Permite buscar clientes por nome ou email
+3. Agrupa os clientes pelo nome, permitindo identificar clientes com múltiplas carteiras
+4. Para cada cliente encontrado, extrai:
    - Informações básicas da planilha base (nome, carteira, estratégia, benchmark)
    - Dados de performance da planilha de rentabilidade (rentabilidades, ativos, etc.)
-4. Gera um relatório HTML personalizado para cada cliente
-5. Salva os relatórios como arquivos HTML
-6. Opcionalmente, envia os relatórios por email (Windows)
+   - Dados do banker a partir da aba Base Consolidada
+5. Gera um relatório HTML personalizado para cada cliente, incluindo todas as suas carteiras em um único relatório
+6. Salva os relatórios como arquivos HTML
+7. Opcionalmente, envia os relatórios por email (Windows)
 
 ## Como Executar a Integração
 
@@ -68,22 +74,34 @@ Para listar os clientes disponíveis:
 python mmzr_integracao_real.py --listar
 ```
 
-Para gerar um relatório para um cliente específico:
+Para gerar um relatório para um cliente específico usando nome ou email:
 
 ```bash
-python mmzr_integracao_real.py --cliente [CÓDIGO]
+python mmzr_integracao_real.py --cliente "Nome do Cliente"
+```
+
+ou
+
+```bash
+python mmzr_integracao_real.py --cliente "email@cliente.com"
 ```
 
 Para gerar um relatório e enviá-lo por email (Windows):
 
 ```bash
-python mmzr_integracao_real.py --cliente [CÓDIGO] --enviar
+python mmzr_integracao_real.py --cliente "Nome do Cliente" --enviar
 ```
 
 Para gerar relatórios para todos os clientes:
 
 ```bash
 python mmzr_integracao_real.py
+```
+
+Para criar dados de exemplo para testes:
+
+```bash
+python mmzr_integracao_real.py --criar-exemplo
 ```
 
 ## Formato do Relatório
@@ -100,6 +118,11 @@ O relatório gerado inclui:
 3. **Ativos Promotores** (limitados a 2, com valores positivos e símbolo "+")
 
 4. **Ativos Detratores** (limitados a 2, com valores negativos)
+
+5. **Novas funcionalidades**:
+   - Link para a carta mensal (gerado automaticamente com base no mês/ano atual)
+   - Observação sobre os bankers em cópia (extraído da aba Base Consolidada)
+   - Múltiplas carteiras agrupadas no mesmo relatório
 
 ## Identidade Visual
 
@@ -124,6 +147,8 @@ O sistema inclui suporte específico para visualização em dispositivos móveis
    - Estilos inline para máxima compatibilidade
    - Estrutura de tabelas aninhadas para suporte amplo
    - Cores explícitas para elementos críticos
+   - Ajustes específicos para iOS e Android
+   - Controle de proporções para diferentes dispositivos
 
 ## Verificação do Sistema
 
@@ -140,8 +165,11 @@ Este comando testará:
 
 ## Notas Importantes
 
-- Os emails são gerados no formato HTML moderno, mas com compatibilidade para clientes de email mais antigos
+- Os emails são gerados no formato HTML moderno, com compatibilidade para clientes de email mais antigos
 - O sistema detecta automaticamente o ambiente (macOS/Windows) e adapta seu comportamento
 - Os arquivos são salvos localmente mesmo quando enviados por email
 - O sistema mostra mensagens detalhadas no terminal para acompanhamento do processo
-- Agora com suporte completo a tema escuro em dispositivos móveis 
+- Compatibilidade otimizada para tema escuro em dispositivos móveis 
+- A identificação do cliente é feita pelo nome ou email, permitindo visualizar todas as carteiras de um mesmo cliente em um único relatório
+- Inclusão de observação sobre bankers em cópia, extraindo essa informação da aba Base Consolidada
+- Geração automática do link para a carta mensal com base no mês e ano atuais 
