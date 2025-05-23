@@ -293,6 +293,14 @@ class MMZREmailGenerator:
         # Obter informações do banker
         banker, banker_pronome = self.get_banker_info(client_name)
         
+        # Criar o texto da observação baseado no banker
+        if banker == 'Banker 4':
+            # Se o banker é o Banker 4 (Felipe), usar texto singular sem duplicação
+            obs_text = "<strong>Obs.:</strong> Conforme solicitado, deixo o Felipe em cópia para também receber as informações."
+        else:
+            # Se o banker não é o Banker 4, usar texto plural com os dois nomes
+            obs_text = f"<strong>Obs.:</strong> Conforme solicitado, deixo o Felipe e {banker_pronome} em cópia para também receberem as informações."
+        
         # HTML Header
         html = f"""<!DOCTYPE html>
 <html lang="pt-BR">
@@ -620,7 +628,7 @@ class MMZREmailGenerator:
                                                 <strong>Obs.:</strong> Eventuais ajustes retroativos do IPCA, após a divulgação oficial do indicador, podem impactar marginalmente a rentabilidade do portfólio no mês anterior.
                                             </p>
                                             <p style="margin: 0; color: #555555 !important; font-size: 12px; font-style: italic;">
-                                                <strong>Obs.:</strong> Conforme solicitado, deixo o Felipe e {banker_pronome} em cópia para também receberem as informações.
+                                                {obs_text}
                                             </p>
                                         </td>
                                     </tr>
