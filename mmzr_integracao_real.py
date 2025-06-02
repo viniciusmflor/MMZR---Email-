@@ -1,8 +1,8 @@
-import os
+# import os
 import json
 import pandas as pd
 from datetime import datetime
-from mmzr_email_generator import MMZREmailGenerator, process_and_generate_report
+from mmzr_email_generator import MMZREmailGenerator
 from mmzr_compatibilidade import MMZRCompatibilidade
 
 def gerar_relatorio_integrado(planilha_base=None, planilha_rentabilidade=None, nome_ou_email_cliente=None, enviar_email=False):
@@ -114,7 +114,7 @@ def gerar_relatorio_integrado(planilha_base=None, planilha_rentabilidade=None, n
                     
                     # Enviar email se solicitado
                     if enviar_email:
-                        assunto = f"Relatório Mensal MMZR - {generator.meses_pt[datetime.now().month]} de {datetime.now().year}"
+                        assunto = generator.generate_email_subject(datetime.now())
                         
                         enviado = MMZRCompatibilidade.enviar_email(
                             destinatario=email_cliente, 
@@ -161,7 +161,7 @@ def gerar_relatorio_integrado(planilha_base=None, planilha_rentabilidade=None, n
                     
                     # Enviar email se solicitado
                     if enviar_email:
-                        assunto = f"Relatório Mensal MMZR - {generator.meses_pt[datetime.now().month]} de {datetime.now().year}"
+                        assunto = generator.generate_email_subject(datetime.now())
                         
                         enviado = MMZRCompatibilidade.enviar_email(
                             destinatario=email_cliente, 
