@@ -80,15 +80,25 @@ class MMZRCompatibilidade:
                             if os.path.exists(anexo):
                                 mail.Attachments.Add(anexo)
                     
-                    mail.Send()
-                    print(f"Email enviado para {destinatario} via Outlook")
-                    return True
+                    mail.Save()
+                    print(f"Email salvo como rascunho para {destinatario}")
+                    
+                    #mail.Send()
+                    #print(f"Email enviado para {destinatario} via Outlook")
+                    #return True
+                except win32com.client.pywintypes.com_error as e:
+                    print(f"ERRO COM: {str(e)}")
+                    import traceback
+                    traceback.print_exc()
+                    return False
                 except ImportError:
                     print("ERRO: win32com não está instalado. A integração com Outlook não funcionará")
                     print(f"Email seria enviado para {destinatario}")
                     return False
                 except Exception as e:
-                    print(f"ERRO ao enviar email via Outlook: {str(e)}")
+                    print(f"ERRO GERAL: {str(e)}")
+                    import traceback
+                    traceback.print_exc()
                     return False
             else:
                 # No macOS, apenas exibir uma mensagem
@@ -98,7 +108,7 @@ class MMZRCompatibilidade:
                 return True
                 
         except Exception as e:
-            print(f"ERRO ao enviar email: {str(e)}")
+            print(f"ERRO ao abrir arquivo: {str(e)}")
             return False
     
     @staticmethod
