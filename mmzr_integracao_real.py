@@ -43,8 +43,35 @@ def gerar_relatorio_integrado(planilha_base=None, planilha_rentabilidade=None, n
             # Filtrar apenas clientes reais (remover dados de template como "Nome Cliente")
             df_clientes = df_clientes[df_clientes['Nome cliente'] != 'Nome Cliente']
             
-            # Se a coluna 'Email cliente' não existir, criar uma com emails fictícios
-            if 'Email cliente' not in df_clientes.columns:
+            # Carregar a aba Base Consolidada para obter os emails
+            if "Base Consolidada" in excel_base.sheet_names:
+                df_consolidada = pd.read_excel(excel_base, sheet_name="Base Consolidada")
+                
+                # Limpar espaços em branco nos nomes dos clientes na base consolidada
+                df_consolidada['NomeCompletoCliente'] = df_consolidada['NomeCompletoCliente'].str.strip()
+                
+                # Fazer join entre as duas abas usando o nome do cliente
+                df_clientes = df_clientes.merge(
+                    df_consolidada[['NomeCompletoCliente', 'EmailCliente']], 
+                    left_on='Nome cliente', 
+                    right_on='NomeCompletoCliente', 
+                    how='left'
+                )
+                
+                # Renomear a coluna para padronizar
+                df_clientes['Email cliente'] = df_clientes['EmailCliente']
+                
+                # Verificar se há clientes sem email e criar emails fictícios para eles
+                clientes_sem_email = df_clientes['Email cliente'].isna()
+                if clientes_sem_email.any():
+                    print(f"AVISO: {clientes_sem_email.sum()} clientes sem email encontrados. Criando emails fictícios.")
+                    df_clientes.loc[clientes_sem_email, 'Email cliente'] = df_clientes.loc[clientes_sem_email, 'Nome cliente'].apply(
+                        lambda nome: f"{nome.lower().replace(' ', '.')}@example.com"
+                    )
+                
+                print(f"Emails carregados da aba 'Base Consolidada' com sucesso!")
+            else:
+                print("AVISO: Aba 'Base Consolidada' não encontrada. Criando emails fictícios.")
                 df_clientes['Email cliente'] = df_clientes['Nome cliente'].apply(
                     lambda nome: f"{nome.lower().replace(' ', '.')}@example.com"
                 )
@@ -261,8 +288,35 @@ def listar_clientes_disponiveis():
         # Filtrar apenas clientes reais (remover dados de template como "Nome Cliente")
         df_clientes = df_clientes[df_clientes['Nome cliente'] != 'Nome Cliente']
         
-        # Se a coluna 'Email cliente' não existir, criar uma com emails fictícios
-        if 'Email cliente' not in df_clientes.columns:
+        # Carregar a aba Base Consolidada para obter os emails
+        if "Base Consolidada" in excel_base.sheet_names:
+            df_consolidada = pd.read_excel(excel_base, sheet_name="Base Consolidada")
+            
+            # Limpar espaços em branco nos nomes dos clientes na base consolidada
+            df_consolidada['NomeCompletoCliente'] = df_consolidada['NomeCompletoCliente'].str.strip()
+            
+            # Fazer join entre as duas abas usando o nome do cliente
+            df_clientes = df_clientes.merge(
+                df_consolidada[['NomeCompletoCliente', 'EmailCliente']], 
+                left_on='Nome cliente', 
+                right_on='NomeCompletoCliente', 
+                how='left'
+            )
+            
+            # Renomear a coluna para padronizar
+            df_clientes['Email cliente'] = df_clientes['EmailCliente']
+            
+            # Verificar se há clientes sem email e criar emails fictícios para eles
+            clientes_sem_email = df_clientes['Email cliente'].isna()
+            if clientes_sem_email.any():
+                print(f"AVISO: {clientes_sem_email.sum()} clientes sem email encontrados. Criando emails fictícios.")
+                df_clientes.loc[clientes_sem_email, 'Email cliente'] = df_clientes.loc[clientes_sem_email, 'Nome cliente'].apply(
+                    lambda nome: f"{nome.lower().replace(' ', '.')}@example.com"
+                )
+            
+            print(f"Emails carregados da aba 'Base Consolidada' com sucesso!")
+        else:
+            print("AVISO: Aba 'Base Consolidada' não encontrada. Criando emails fictícios.")
             df_clientes['Email cliente'] = df_clientes['Nome cliente'].apply(
                 lambda nome: f"{nome.lower().replace(' ', '.')}@example.com"
             )

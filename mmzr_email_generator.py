@@ -2,6 +2,7 @@ import os
 import pandas as pd
 from datetime import date, datetime, timedelta
 import re
+import base64
 
 class MMZREmailGenerator:
     """Gerador de emails HTML para MMZR Family Office"""
@@ -409,6 +410,21 @@ class MMZREmailGenerator:
     }
     </style>"""
     
+    def get_logo_base64(self):
+        """Converte a logo em base64 para incorporar no email"""
+        try:
+            logo_path = os.path.join("recursos_email", "logo-MMZR-azul.png")
+            if os.path.exists(logo_path):
+                with open(logo_path, "rb") as image_file:
+                    encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+                    return f"data:image/png;base64,{encoded_string}"
+            else:
+                print(f"AVISO: Logo não encontrada no caminho: {logo_path}")
+                return None
+        except Exception as e:
+            print(f"ERRO ao carregar logo: {e}")
+            return None
+    
     def generate_html_email(self, client_name, data_ref, portfolios_data):
         """Gera o HTML completo do email sem bordas cinzas"""
         
@@ -416,8 +432,9 @@ class MMZREmailGenerator:
         mes = self.meses_pt[data_ref.month]
         ano = data_ref.year
         
-        # Caminho da imagem logo (usar caminho relativo)
-        logo_path = os.path.join("recursos_email", "logo-MMZR-azul.png")
+        # Obter logo em base64
+        logo_base64 = self.get_logo_base64()
+        logo_img = f'<img src="{logo_base64}" alt="MMZR Family Office" width="50" height="40" style="display: block; border: 0;">' if logo_base64 else '<span style="color: #ffffff; font-weight: bold;">MMZR</span>'
         
         # Gerar link para a carta mensal (mês atual)
         carta_mes = self.meses_pt[datetime.now().month].lower()
@@ -437,229 +454,227 @@ class MMZREmailGenerator:
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="only light">
     <meta name="supported-color-schemes" content="only light">
-    <meta name="theme-color" content="#ffffff">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="format-detection" content="telephone=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="x-apple-disable-message-reformatting">
-    <meta name="og:title" property="og:title" content="Relatório MMZR Family Office">
     <!--[if mso]>
     <style type="text/css">
         body, table, td, p, a, li, blockquote {{font-family: Arial, Helvetica, sans-serif !important;}}
-        .mso-hide {{display: none !important;}}
         table {{border-collapse: collapse !important;}}
+        img {{border: 0 !important;}}
     </style>
     <![endif]-->
-    <style>
+    <style type="text/css">
     body {{
+        margin: 0 !important;
+        padding: 0 !important;
         background-color: #ffffff !important;
         color: #333333 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        width: 100% !important;
-        min-width: 100% !important;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+        font-family: Arial, Helvetica, sans-serif !important;
+        -webkit-text-size-adjust: 100% !important;
+        -ms-text-size-adjust: 100% !important;
     }}
     
-    .email-container {{
-        width: 100% !important;
-        max-width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        background-color: #ffffff !important;
+    table {{
+        border-collapse: collapse !important;
+        mso-table-lspace: 0pt !important;
+        mso-table-rspace: 0pt !important;
     }}
     
-    .content-wrapper {{
-        width: 100% !important;
-        max-width: 100% !important;
-        margin: 0 !important;
-        background-color: #ffffff !important;
+    img {{
+        border: 0 !important;
+        height: auto !important;
+        line-height: 100% !important;
+        outline: none !important;
+        text-decoration: none !important;
+        -ms-interpolation-mode: bicubic !important;
     }}
     
     .data-table {{
-        font-size: 12px !important;
+        border-collapse: collapse !important;
         width: 100% !important;
-        border-collapse: collapse;
-        background-color: #ffffff !important;
+        font-size: 12px !important;
+        font-family: Arial, Helvetica, sans-serif !important;
     }}
     
     .data-table th {{
-        font-size: 12px !important;
-        padding: 5px 4px !important;
         background-color: #f8f9fa !important;
         color: #0D2035 !important;
-        border-bottom: 1px solid #dee2e6 !important;
-        font-weight: 600;
+        font-weight: bold !important;
+        padding: 8px 6px !important;
+        font-size: 12px !important;
+        border: 1px solid #dee2e6 !important;
+        text-align: left !important;
     }}
     
     .data-table td {{
-        font-size: 12px !important;
-        padding: 5px 4px !important;
         background-color: #ffffff !important;
-        border-bottom: 1px solid #dee2e6 !important;
         color: #333333 !important;
+        padding: 8px 6px !important;
+        font-size: 12px !important;
+        border: 1px solid #dee2e6 !important;
+        text-align: left !important;
     }}
     
-    .portfolio-header {{
+    .section-header {{
         background-color: #0D2035 !important;
         color: #ffffff !important;
-        padding: 10px 12px;
+        padding: 12px !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        margin: 0 !important;
     }}
     
-    .portfolio-header h3 {{
-        margin: 0;
-        font-size: 16px;
-        color: #ffffff !important;
-        font-weight: 500;
-    }}
-    
-    .portfolio-header span {{
-        font-size: 14px;
-        color: #ffffff !important;
-        font-weight: 300;
-        opacity: 0.9;
-    }}
-    
-    .performance-header {{
-        font-size: 14px;
+    .performance-title {{
         color: #0D2035 !important;
-        margin: 0 0 10px 0;
-        padding-bottom: 5px;
-        border-bottom: 1px solid #e0e0e0;
-        font-weight: 500;
+        font-size: 14px !important;
+        font-weight: bold !important;
+        margin: 15px 0 10px 0 !important;
+        padding: 0 !important;
     }}
     
-    .compact-section {{
-        margin: 15px 0;
-        border: 1px solid #e0e0e0;
-        border-radius: 6px;
-        overflow: hidden;
-        background-color: #ffffff !important;
+    ul {{
+        margin: 5px 0 !important;
+        padding-left: 15px !important;
     }}
     
-    .section-content {{
-        padding: 15px;
-        background-color: #ffffff !important;
+    li {{
+        margin: 2px 0 !important;
+        font-size: 12px !important;
+        line-height: 1.3 !important;
     }}
     
-    @media screen and (max-width: 600px) {{
+    .highlight-section {{
+        background-color: #f0f8ff !important;
+        padding: 8px !important;
+        margin: 8px 0 !important;
+        border-left: 4px solid #0D2035 !important;
+    }}
+    
+    .promoters-section {{
+        background-color: #f0fff0 !important;
+        padding: 8px !important;
+        margin: 8px 0 !important;
+        border-left: 4px solid #28a745 !important;
+    }}
+    
+    .detractors-section {{
+        background-color: #fff5f5 !important;
+        padding: 8px !important;
+        margin: 8px 0 !important;
+        border-left: 4px solid #dc3545 !important;
+    }}
+    
+    .carta-button {{
+        display: inline-block !important;
+        background-color: #0D2035 !important;
+        color: #ffffff !important;
+        padding: 12px 24px !important;
+        text-decoration: none !important;
+        border-radius: 4px !important;
+        font-weight: bold !important;
+        font-size: 14px !important;
+        font-family: Arial, Helvetica, sans-serif !important;
+        text-align: center !important;
+        border: none !important;
+    }}
+    
+    @media only screen and (max-width: 600px) {{
         .data-table th,
         .data-table td {{
             font-size: 10px !important;
-            padding: 3px 2px !important;
+            padding: 4px 3px !important;
         }}
         
-        .portfolio-header h3 {{
+        .section-header {{
             font-size: 14px !important;
+            padding: 8px !important;
         }}
         
-        .portfolio-header span {{
-            font-size: 12px !important;
-            display: block;
-            margin-top: 2px;
-        }}
-        
-        .performance-header {{
+        .performance-title {{
             font-size: 12px !important;
         }}
         
-        .section-content {{
-            padding: 10px !important;
-        }}
-    }}
-    
-    @media screen and (max-width: 480px) {{
-        .data-table th,
-        .data-table td {{
-            font-size: 9px !important;
-            padding: 2px 1px !important;
-        }}
-        
-        .portfolio-header h3 {{
-            font-size: 12px !important;
-        }}
-        
-        .performance-header {{
+        li {{
             font-size: 11px !important;
         }}
     }}
     </style>
 </head>
-<body>
-    <div class="email-container">
-        <table class="content-wrapper" cellpadding="0" cellspacing="0" style="width: 100%; background-color: #ffffff !important; border-collapse: collapse;">
-            <!-- Header -->
-            <tr>
-                <td style="background-color: #0D2035 !important; color: #ffffff !important; padding: 12px; text-align: center;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr>
-                            <td style="text-align: left; vertical-align: middle; width: 60px;">
-                                <img src="{logo_path}" alt="MMZR Family Office" width="50" height="40" style="display: block; border: 0;">
-                            </td>
-                            <td style="text-align: left; vertical-align: middle; padding-left: 10px;">
-                                <h1 style="margin: 0; font-size: 18px; color: #ffffff !important; font-weight: 500;">MMZR Family Office</h1>
-                                <p style="margin: 0; font-size: 14px; color: #ffffff !important;">Relatório Mensal - {mes} {ano}</p>
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-            
-            <!-- Content -->
-            <tr>
-                <td class="section-content" style="padding: 15px; background-color: #ffffff !important;">
-                    <h2 style="font-size: 16px; color: #0D2035 !important; margin-bottom: 10px; margin-top: 0; font-weight: 500;">Olá {client_name},</h2>
-                    <p style="margin-top: 0; margin-bottom: 15px; color: #333333 !important; font-size: 14px; line-height: 1.4;">
-                        Segue o relatório mensal com o desempenho de suas carteiras referente a <strong>{data_ref.strftime('%d/%m/%Y')}</strong>.
-                    </p>"""
+<body style="margin: 0; padding: 0; background-color: #ffffff; color: #333333; font-family: Arial, Helvetica, sans-serif;">
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse: collapse; background-color: #ffffff;">
+        <!-- Header -->
+        <tr>
+            <td style="background-color: #0D2035; padding: 15px; text-align: center;">
+                <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse: collapse;">
+                    <tr>
+                        <td style="text-align: left; vertical-align: middle; width: 60px;">
+                            {logo_img}
+                        </td>
+                        <td style="text-align: left; vertical-align: middle; padding-left: 15px;">
+                            <h1 style="margin: 0; font-size: 20px; color: #ffffff; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">MMZR Family Office</h1>
+                            <p style="margin: 5px 0 0 0; font-size: 16px; color: #ffffff; font-family: Arial, Helvetica, sans-serif;">Relatório Mensal - {mes} {ano}</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
         
-        # Adicionar cada carteira
+        <!-- Content -->
+        <tr>
+            <td style="padding: 20px; background-color: #ffffff;">
+                <p style="margin: 0 0 15px 0; font-size: 14px; color: #333333; font-family: Arial, Helvetica, sans-serif;">
+                    Olá {client_name},
+                </p>
+                
+                <p style="margin: 0 0 20px 0; font-size: 14px; color: #333333; line-height: 1.5; font-family: Arial, Helvetica, sans-serif;">
+                    Segue o relatório mensal com o desempenho de suas carteiras referente a <strong>{datetime.now().strftime('%d/%m/%Y')}</strong>.
+                </p>"""
+        
+        # Adicionar as seções das carteiras
         for portfolio in portfolios_data:
             html += self.generate_portfolio_section(portfolio)
         
-        # Adicionar link para a carta mensal
+        # Finalizar o HTML
         html += f"""
-                    <!-- Link para a carta mensal -->
-                    <div style="margin-top: 20px; text-align: center;">
-                        <a href="{carta_link}" style="display: inline-block; background-color: #0D2035; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: 500; font-size: 14px;">Confira nossa carta completa: Carta {mes} {ano}</a>
-                    </div>
-                    
-                    <!-- Disclaimer -->
-                    <div style="margin-top: 20px; padding: 12px; background-color: #f8f9fa; border-radius: 5px;">
-                        <p style="margin: 0 0 8px 0; color: #555555 !important; font-size: 11px; font-style: italic; line-height: 1.3;">
-                            <strong>Obs.:</strong> Eventuais ajustes retroativos do IPCA, após a divulgação oficial do indicador, podem impactar marginalmente a rentabilidade do portfólio no mês anterior.
-                        </p>
-                        <p style="margin: 0; color: #555555 !important; font-size: 11px; font-style: italic; line-height: 1.3;">
-                            {obs_text}
-                        </p>
-                    </div>
+                 
+                 <!-- Observações finais -->
+                 <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+                     <p style="margin: 0 0 10px 0; color: #555555; font-size: 12px; line-height: 1.4; font-family: Arial, Helvetica, sans-serif;">
+                         <strong>Obs.:</strong> Eventuais ajustes retroativos do IPCA, após a divulgação oficial do indicador, podem impactar marginalmente a rentabilidade do portfólio no mês anterior.
+                     </p>
+                     <p style="margin: 0; color: #555555; font-size: 11px; font-style: italic; line-height: 1.3; font-family: Arial, Helvetica, sans-serif;">
+                         {obs_text}
+                     </p>
+                 </div>
 
-                    <!-- Principais indicadores -->
-                    <div style="margin-top: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 5px;">
-                        <p style="margin: 0 0 5px 0; font-weight: bold; color: #333333 !important; font-size: 12px;">Principais indicadores:</p>
-                        <p style="margin: 0; color: #555555 !important; font-size: 10px; font-style: italic; line-height: 1.3;">
-                            Locais: CDI: +1,06%, Ibovespa: +3,69%, Prefixados (IRF-M): +2,99%, Ativos IPCA (IMA-B): +2,09%, Imobiliários (IFIX): +3,01%, Dólar (Ptax): -1,42%, Multimercados (IHFA): +3,85%<br>
-                            Internacionais: MSCI AC: +0,77%, S&P 500 -0,76%, Euro Stoxx 600 -1,21%, MSCI China -4,55%, MSCI EM +1,04%, Ouro +5,29%, Petróleo BRENT -14,97%, Minério de ferro -2,68% e Bitcoin (IBIT) +14,31%
-                        </p>
-                    </div>
-                </td>
-            </tr>
-            
-            <!-- Footer -->
-            <tr>
-                <td style="background-color: #f8f9fa !important; padding: 12px; text-align: center;">
-                    <p style="margin: 0 0 4px 0; color: #666666 !important; font-size: 11px;">MMZR Family Office | Gestão de Patrimônio</p>
-                    <p style="margin: 0; color: #666666 !important; font-size: 11px;">© {ano} MMZR Family Office. Todos os direitos reservados.</p>
-                </td>
-            </tr>
-        </table>
-    </div>
-</body>
-</html>"""
+                 <!-- Principais indicadores -->
+                 <div style="margin-top: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 5px;">
+                     <p style="margin: 0 0 5px 0; font-weight: bold; color: #333333; font-size: 12px; font-family: Arial, Helvetica, sans-serif;">Principais indicadores:</p>
+                     <p style="margin: 0; color: #555555; font-size: 10px; font-style: italic; line-height: 1.3; font-family: Arial, Helvetica, sans-serif;">
+                         Locais: CDI: +1,06%, Ibovespa: +3,69%, Prefixados (IRF-M): +2,99%, Ativos IPCA (IMA-B): +2,09%, Imobiliários (IFIX): +3,01%, Dólar (Ptax): -1,42%, Multimercados (IHFA): +3,85%<br>
+                         Internacionais: MSCI AC: +0,77%, S&P 500 -0,76%, Euro Stoxx 600 -1,21%, MSCI China -4,55%, MSCI EM +1,04%, Ouro +5,29%, Petróleo BRENT -14,97%, Minério de ferro -2,68% e Bitcoin (IBIT) +14,31%
+                     </p>
+                 </div>
+                 
+                 <!-- Link para carta mensal como botão azul -->
+                 <div style="margin-top: 20px; text-align: center;">
+                     <a href="{carta_link}" target="_blank" class="carta-button" style="display: inline-block; background-color: #0D2035; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 14px; font-family: Arial, Helvetica, sans-serif;">Confira nossa carta completa: Carta {mes} {ano}</a>
+                 </div>
+             </td>
+         </tr>
+         
+         <!-- Footer -->
+         <tr>
+             <td style="background-color: #f8f9fa; padding: 15px; text-align: center;">
+                 <p style="margin: 0 0 5px 0; color: #666666; font-size: 11px; font-family: Arial, Helvetica, sans-serif;">MMZR Family Office | Gestão de Patrimônio</p>
+                 <p style="margin: 0; color: #666666; font-size: 11px; font-family: Arial, Helvetica, sans-serif;">© {ano} MMZR Family Office. Todos os direitos reservados.</p>
+             </td>
+         </tr>
+     </table>
+ </body>
+ </html>"""
         
         return html
     
@@ -677,21 +692,22 @@ class MMZREmailGenerator:
         ativos_detratores = data.get('ativos_detratores', [])
         
         html = f"""
-                    <!-- Carteira: {name} -->
-                    <div class="compact-section" style="margin: 8px 0; border: 1px solid #e0e0e0; border-radius: 4px; overflow: hidden; background-color: #ffffff !important;">
-                        <div class="portfolio-header" style="background-color: #0D2035 !important; color: #ffffff !important; padding: 6px 10px;">
-                            <h3 style="margin: 0; font-size: 14px; color: #ffffff !important; font-weight: 500;">{name} <span style="font-size: 12px; color: #ffffff !important; font-weight: 300; opacity: 0.9; margin-left: 4px;">| {portfolio_type}</span></h3>
-                        </div>
-                        <div class="section-content" style="padding: 8px; background-color: #ffffff !important;">
-                            {self.generate_performance_table(performance_data, retorno_financeiro)}
-                            
-                            {self.generate_highlight_strategies(estrategias_destaque)}
-                            
-                            {self.generate_promoter_assets(ativos_promotores)}
-                            
-                            {self.generate_detractor_assets(ativos_detratores)}
-                        </div>
-                    </div>"""
+                 <!-- Carteira: {name} -->
+                 <div style="margin: 25px 0; border: 1px solid #e0e0e0; border-radius: 5px; overflow: hidden; background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                     <div style="background-color: #0D2035; color: #ffffff; padding: 12px;">
+                         <h3 style="margin: 0; font-size: 16px; color: #ffffff; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">{name}</h3>
+                         <span style="font-size: 14px; color: #ffffff; font-family: Arial, Helvetica, sans-serif; opacity: 0.9;">{portfolio_type}</span>
+                     </div>
+                     <div style="padding: 15px; background-color: #ffffff;">
+                         {self.generate_performance_table(performance_data, retorno_financeiro)}
+                         
+                         {self.generate_highlight_strategies(estrategias_destaque)}
+                         
+                         {self.generate_promoter_assets(ativos_promotores)}
+                         
+                         {self.generate_detractor_assets(ativos_detratores)}
+                     </div>
+                 </div>"""
         
         return html
     
@@ -720,18 +736,17 @@ class MMZREmailGenerator:
                 break
         
         html = f"""
-                            <h4 class="performance-header" style="font-size: 12px; color: #0D2035 !important; margin: 0 0 5px 0; padding-bottom: 3px; border-bottom: 1px solid #e0e0e0; font-weight: 500;">Performance</h4>
-                            <div style="overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%;">
-                                <table class="data-table" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 6px; background-color: #ffffff !important;">
-                                    <thead>
-                                        <tr>
-                                            <th style="background-color: #f8f9fa !important; color: #0D2035 !important; font-weight: 600; padding: 3px 2px; text-align: left; border-bottom: 1px solid #dee2e6 !important; font-size: 10px;">Período</th>
-                                            <th style="background-color: #f8f9fa !important; color: #0D2035 !important; font-weight: 600; padding: 3px 2px; text-align: center; border-bottom: 1px solid #dee2e6 !important; font-size: 10px;">Carteira</th>
-                                            <th style="background-color: #f8f9fa !important; color: #0D2035 !important; font-weight: 600; padding: 3px 2px; text-align: center; border-bottom: 1px solid #dee2e6 !important; font-size: 10px;">Benchmark</th>
-                                            <th style="background-color: #f8f9fa !important; color: #0D2035 !important; font-weight: 600; padding: 3px 2px; text-align: center; border-bottom: 1px solid #dee2e6 !important; font-size: 10px;">Carteira vs. Benchmark</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>"""
+                         <h4 style="font-size: 14px; color: #0D2035; margin: 0 0 10px 0; padding-bottom: 5px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">Performance</h4>
+                         <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 15px; background-color: #ffffff; border: 1px solid #dee2e6; font-family: Arial, Helvetica, sans-serif;">
+                             <thead>
+                                 <tr>
+                                     <th style="background-color: #f8f9fa; color: #0D2035; font-weight: bold; padding: 8px 6px; text-align: left; border: 1px solid #dee2e6; font-size: 12px; font-family: Arial, Helvetica, sans-serif;">Período</th>
+                                     <th style="background-color: #f8f9fa; color: #0D2035; font-weight: bold; padding: 8px 6px; text-align: center; border: 1px solid #dee2e6; font-size: 12px; font-family: Arial, Helvetica, sans-serif;">Carteira</th>
+                                     <th style="background-color: #f8f9fa; color: #0D2035; font-weight: bold; padding: 8px 6px; text-align: center; border: 1px solid #dee2e6; font-size: 12px; font-family: Arial, Helvetica, sans-serif;">Benchmark</th>
+                                     <th style="background-color: #f8f9fa; color: #0D2035; font-weight: bold; padding: 8px 6px; text-align: center; border: 1px solid #dee2e6; font-size: 12px; font-family: Arial, Helvetica, sans-serif;">Carteira vs. Benchmark</th>
+                                 </tr>
+                             </thead>
+                             <tbody>"""
         
         # Adicionar cada linha de performance
         for item in filtered_data:
@@ -745,26 +760,25 @@ class MMZREmailGenerator:
             diferenca_color = "#28a745" if diferenca > 0 else "#dc3545" if diferenca < 0 else "#333333"
             
             html += f"""
-                                        <tr>
-                                            <td style="padding: 3px 2px; text-align: left; border-bottom: 1px solid #dee2e6 !important; background-color: #ffffff !important; color: #333333 !important; font-size: 10px;">{periodo}</td>
-                                            <td style="padding: 3px 2px; text-align: center; border-bottom: 1px solid #dee2e6 !important; color: {carteira_color}; font-weight: 500; background-color: #ffffff !important; font-size: 10px;">{self.format_percentage(carteira)}</td>
-                                            <td style="padding: 3px 2px; text-align: center; border-bottom: 1px solid #dee2e6 !important; background-color: #ffffff !important; color: #333333 !important; font-size: 10px;">{self.format_percentage(benchmark)}</td>
-                                            <td style="padding: 3px 2px; text-align: center; border-bottom: 1px solid #dee2e6 !important; color: {diferenca_color}; font-weight: 500; background-color: #ffffff !important; font-size: 10px;">{self.format_percentage(diferenca).replace('%', ' p.p.')}</td>
-                                        </tr>"""
+                                 <tr>
+                                     <td style="padding: 8px 6px; text-align: left; border: 1px solid #dee2e6; background-color: #ffffff; color: #333333; font-size: 12px; font-family: Arial, Helvetica, sans-serif;">{periodo}</td>
+                                     <td style="padding: 8px 6px; text-align: center; border: 1px solid #dee2e6; color: {carteira_color}; font-weight: bold; background-color: #ffffff; font-size: 12px; font-family: Arial, Helvetica, sans-serif;">{self.format_percentage(carteira)}</td>
+                                     <td style="padding: 8px 6px; text-align: center; border: 1px solid #dee2e6; background-color: #ffffff; color: #333333; font-size: 12px; font-family: Arial, Helvetica, sans-serif;">{self.format_percentage(benchmark)}</td>
+                                     <td style="padding: 8px 6px; text-align: center; border: 1px solid #dee2e6; color: {diferenca_color}; font-weight: bold; background-color: #ffffff; font-size: 12px; font-family: Arial, Helvetica, sans-serif;">{self.format_percentage(diferenca).replace('%', ' p.p.')}</td>
+                                 </tr>"""
         
         # Adicionar linha de retorno financeiro se disponível
         if retorno_financeiro is not None:
             color = "#28a745" if retorno_financeiro > 0 else "#dc3545" if retorno_financeiro < 0 else "#333333"
             html += f"""
-                                        <tr>
-                                            <td style="padding: 3px 2px; text-align: left; border-bottom: 1px solid #dee2e6 !important; font-weight: 500; background-color: #ffffff !important; color: #333333 !important; font-size: 10px;">Retorno Financeiro:</td>
-                                            <td style="padding: 3px 2px; text-align: center; border-bottom: 1px solid #dee2e6 !important; color: {color}; font-weight: 500; background-color: #ffffff !important; font-size: 10px;" colspan="3">{self.format_currency(retorno_financeiro)}</td>
-                                        </tr>"""
+                                 <tr>
+                                     <td style="padding: 8px 6px; text-align: left; border: 1px solid #dee2e6; font-weight: bold; background-color: #ffffff; color: #333333; font-size: 12px; font-family: Arial, Helvetica, sans-serif;">Retorno Financeiro:</td>
+                                     <td style="padding: 8px 6px; text-align: center; border: 1px solid #dee2e6; color: {color}; font-weight: bold; background-color: #ffffff; font-size: 12px; font-family: Arial, Helvetica, sans-serif;" colspan="3">{self.format_currency(retorno_financeiro)}</td>
+                                 </tr>"""
         
         html += """
-                                    </tbody>
-                                </table>
-                            </div>"""
+                             </tbody>
+                         </table>"""
         return html
     
     def generate_financial_return_section(self, retorno_financeiro):
@@ -785,15 +799,17 @@ class MMZREmailGenerator:
             return ""
         
         html = """
-                            <h4 style="font-size: 12px; color: #0D2035 !important; margin: 8px 0 4px 0; padding-bottom: 3px; border-bottom: 1px solid #e0e0e0; font-weight: 500;">Estratégias de Destaque</h4>
-                            <ul style="margin: 0 0 8px 0; padding: 4px 4px 4px 16px; background-color: #f8f9fa !important; border-radius: 3px; color: #333333 !important;">"""
+                         <h4 style="font-size: 14px; color: #0D2035; margin: 15px 0 8px 0; padding-bottom: 5px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">Estratégias de Destaque</h4>
+                         <div style="margin: 0 0 15px 0; padding: 8px; background-color: #f0f8ff; border-left: 4px solid #0D2035; border-radius: 3px;">
+                             <ul style="margin: 0; padding-left: 15px; list-style-type: disc;">"""
         
         for estrategia in estrategias:
             html += f"""
-                                <li style="margin-bottom: 2px; font-size: 10px; color: #333333 !important; line-height: 1.2;">{estrategia}</li>"""
+                                 <li style="margin-bottom: 2px; font-size: 12px; color: #333333; line-height: 1.3; font-family: Arial, Helvetica, sans-serif;">{estrategia}</li>"""
         
         html += """
-                            </ul>"""
+                             </ul>
+                         </div>"""
         return html
     
     def generate_promoter_assets(self, ativos):
@@ -803,8 +819,9 @@ class MMZREmailGenerator:
             return ""
         
         html = """
-                            <h4 style="font-size: 12px; color: #0D2035 !important; margin: 8px 0 4px 0; padding-bottom: 3px; border-bottom: 1px solid #e0e0e0; font-weight: 500;">Ativos Promotores</h4>
-                            <ul style="margin: 0 0 8px 0; padding: 4px 4px 4px 16px; background-color: #e8f5e9 !important; border-radius: 3px; color: #2e7d32 !important;">"""
+                         <h4 style="font-size: 14px; color: #0D2035; margin: 15px 0 8px 0; padding-bottom: 5px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">Ativos Promotores</h4>
+                         <div style="margin: 0 0 15px 0; padding: 8px; background-color: #f0fff0; border-left: 4px solid #28a745; border-radius: 3px;">
+                             <ul style="margin: 0; padding-left: 15px; list-style-type: disc;">"""
         
         for ativo in ativos:
             # Adicionar o símbolo "+" antes da porcentagem se for um valor positivo
@@ -820,10 +837,11 @@ class MMZREmailGenerator:
                     pass
                     
             html += f"""
-                                <li style="margin-bottom: 2px; font-size: 10px; color: #2e7d32 !important; line-height: 1.2;">{ativo_formatado}</li>"""
+                                 <li style="margin-bottom: 2px; font-size: 12px; color: #2e7d32; line-height: 1.3; font-family: Arial, Helvetica, sans-serif;">{ativo_formatado}</li>"""
         
         html += """
-                            </ul>"""
+                             </ul>
+                         </div>"""
         return html
     
     def generate_detractor_assets(self, ativos):
@@ -833,15 +851,17 @@ class MMZREmailGenerator:
             return ""
         
         html = """
-                            <h4 style="font-size: 12px; color: #0D2035 !important; margin: 8px 0 4px 0; padding-bottom: 3px; border-bottom: 1px solid #e0e0e0; font-weight: 500;">Ativos Detratores</h4>
-                            <ul style="margin: 0 0 8px 0; padding: 4px 4px 4px 16px; background-color: #ffebee !important; border-radius: 3px; color: #c62828 !important;">"""
+                         <h4 style="font-size: 14px; color: #0D2035; margin: 15px 0 8px 0; padding-bottom: 5px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">Ativos Detratores</h4>
+                         <div style="margin: 0 0 15px 0; padding: 8px; background-color: #fff5f5; border-left: 4px solid #dc3545; border-radius: 3px;">
+                             <ul style="margin: 0; padding-left: 15px; list-style-type: disc;">"""
         
         for ativo in ativos:
             html += f"""
-                                <li style="margin-bottom: 2px; font-size: 10px; color: #c62828 !important; line-height: 1.2;">{ativo}</li>"""
+                                 <li style="margin-bottom: 2px; font-size: 12px; color: #c62828; line-height: 1.3; font-family: Arial, Helvetica, sans-serif;">{ativo}</li>"""
         
         html += """
-                            </ul>"""
+                             </ul>
+                         </div>"""
         return html
     
     def save_email_to_file(self, html_content, client_name, output_path=None):
