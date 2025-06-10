@@ -1,11 +1,10 @@
-import { Component, signal, computed, inject } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
   OutlookCompatibleEmailService,
   EmailConfiguration,
-  PortfolioData,
-  PerformanceItem
+  PortfolioData
 } from '../../services/outlook-compatible-email.service';
 
 @Component({

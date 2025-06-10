@@ -1,258 +1,155 @@
-# MMZR Email Generator - Compatível com Outlook
+# MMZR Family Office - Gerador de Relatórios
 
-Uma aplicação Angular/TypeScript especializada em gerar emails HTML totalmente compatíveis com Microsoft Outlook e outros clientes de email.
+Sistema de geração automática de relatórios mensais para clientes da MMZR Family Office.
 
-## 🚀 Características Principais
+## 📋 Funcionalidades
 
-### ✅ Compatibilidade Total com Outlook
-- **Estilos inline**: Todos os estilos são aplicados diretamente nos elementos HTML
-- **Estrutura de tabelas**: Layout baseado em tabelas para máxima compatibilidade
-- **Conditional Comments**: Suporte específico para versões do Outlook
-- **VML (Vector Markup Language)**: Botões e elementos gráficos compatíveis com Outlook
-- **Fallbacks**: Alternativas para funcionalidades não suportadas
+- ✅ **Geração automática de relatórios HTML** a partir de planilhas Excel
+- ✅ **Comentários personalizados** da planilha integrados automaticamente
+- ✅ **Envio de emails** via Outlook (Windows) ou simulação (macOS/Linux)
+- ✅ **Múltiplas carteiras por cliente** em um único relatório
+- ✅ **Interface compatível** com clientes de email
+- ✅ **Processamento em lote** ou cliente específico
 
-### 🎯 Funcionalidades
-- Geração de relatórios mensais de performance
-- Interface visual para criação de emails
-- Preview em tempo real
-- Exportação em HTML otimizado
-- Upload e conversão de logos para Base64
-- Validação de dados antes da geração
+## 🚀 Instalação
 
-### 🛠️ Tecnologias Utilizadas
-- **Angular 17+** com Standalone Components
-- **TypeScript** com strict type checking
-- **SCSS** para estilização
-- **Signals** para gerenciamento de estado reativo
-- **Inject function** para injeção de dependências
+### Requisitos
+- Python 3.8+
+- pandas
+- win32com (apenas Windows, para integração com Outlook)
 
-## 📋 Pré-requisitos
-
-- Node.js (versão 18 ou superior)
-- npm ou yarn
-- Angular CLI (opcional, mas recomendado)
-
-## 🔧 Instalação
-
-1. **Clone o repositório:**
+### Instalação
 ```bash
-git clone <url-do-repositorio>
-cd mmzr-email-generator
+pip install -r requirements.txt
 ```
 
-2. **Instale as dependências:**
+## 📁 Estrutura de Arquivos
+
+```
+MMZR - Email/
+├── mmzr_integracao_real.py     # Script principal
+├── mmzr_email_generator.py     # Gerador de HTML
+├── mmzr_compatibilidade.py     # Compatibilidade multi-OS
+├── requirements.txt            # Dependências Python
+├── documentos/
+│   └── dados/
+│       ├── Planilha Inteli.xlsm
+│       └── Planilha Inteli - dados de rentabilidade.xlsx
+└── recursos_email/
+    └── logo-MMZR-azul.png
+```
+
+## 💻 Uso
+
+### Comando Básico
 ```bash
-npm install
+# Listar clientes disponíveis
+python mmzr_integracao_real.py --listar
+
+# Gerar relatório para cliente específico
+python mmzr_integracao_real.py --cliente "Nome do Cliente"
+
+# Gerar e enviar por email
+python mmzr_integracao_real.py --cliente "Nome do Cliente" --enviar
+
+# Modo interativo
+python mmzr_integracao_real.py
 ```
 
-3. **Execute a aplicação:**
-```bash
-npm start
+### Opções de Linha de Comando
+- `--listar`: Lista todos os clientes disponíveis
+- `--cliente "NOME"`: Gera relatório para cliente específico
+- `--enviar`: Envia o relatório por email automaticamente
+- `--help`: Mostra ajuda
+
+## 📊 Estrutura das Planilhas
+
+### Aba "Base Clientes"
+Colunas obrigatórias:
+- `Nome cliente`
+- `Email cliente` (ou obtido da aba "Base Consolidada")
+- `Código carteira smart`
+- `Nome carteira`
+- `Estratégia carteira`
+- `Comentários` (opcional)
+
+### Aba "Base Consolidada"
+Para emails e informações de bankers:
+- `NomeCompletoCliente`
+- `EmailCliente`
+- `Banker`
+- `NomePronomeBanker`
+
+### Planilha de Rentabilidade
+Colunas obrigatórias:
+- `Código carteira smart`
+- `Rentabilidade Carteira Mês`
+- `Benchmark Mês`
+- `Variação Relativa Mês`
+- `Rentabilidade Carteira No Ano`
+- `Benchmark No Ano`
+- `Variação Relativa No Ano`
+- `Retorno Financeiro`
+- `Estratégia de Destaque 1`
+- `Estratégia de Destaque 2`
+- `Ativo Promotor 1`
+- `Ativo Promotor 2`
+- `Ativo Detrator 1`
+- `Ativo Detrator 2`
+
+## 📧 Funcionalidade de Comentários
+
+Os comentários da coluna "Comentários" na planilha aparecem automaticamente na seção de observações do email no formato:
+
+```
+Observações:
+• Obs.: Eventuais ajustes retroativos do IPCA...
+• Obs.: Conforme solicitado, deixo o Felipe e Renato em cópia...
+• Comentário [Nome da Carteira]: [Texto da planilha]
 ```
 
-4. **Acesse no navegador:**
-```
-http://localhost:4200
-```
+## 🖥️ Compatibilidade
 
-## 📖 Como Usar
+### Windows
+- Integração completa com Microsoft Outlook
+- Envio automático de emails
 
-### 1. Configuração Básica
-- **Nome do Cliente**: Digite o nome que aparecerá na saudação
-- **Data do Relatório**: Selecione a data de referência
-- **Logo**: Faça upload da logo da empresa (será convertida para Base64)
+### macOS/Linux
+- Simulação de envio de emails
+- Geração completa de relatórios HTML
 
-### 2. Configuração de Portfólios
-- **Adicionar Portfólio**: Clique em "Adicionar Portfólio" para criar novos
-- **Nome e Tipo**: Defina o nome e tipo de cada portfólio
-- **Performance**: Adicione dados de performance (período, carteira, benchmark, diferença)
-- **Retorno Financeiro**: Informe o valor de retorno em reais
+## 🔧 Configuração
 
-### 3. Ativos e Estratégias
-- **Estratégias de Destaque**: Liste as principais estratégias com suas performances
-- **Ativos Promotores**: Adicione ativos com performance positiva
-- **Ativos Detratores**: Adicione ativos com performance negativa
+O sistema detecta automaticamente:
+- Sistema operacional
+- Disponibilidade do Outlook (Windows)
+- Caminhos das planilhas
 
-### 4. Geração e Exportação
-- **Gerar Email**: Clique para gerar o HTML do email
-- **Preview**: Visualize o resultado na seção de preview
-- **Copiar HTML**: Copie o código HTML para a área de transferência
-- **Download**: Baixe o arquivo HTML para uso posterior
+## 📝 Saída
 
-## 🔧 Estrutura Técnica
+Para cada cliente, o sistema gera:
+- Arquivo HTML otimizado para email: `relatorio_mensal_[Cliente]_[Data].html`
+- Logo incorporada em base64 para compatibilidade
+- Layout responsivo compatível com clientes de email
 
-### Serviço Principal: `OutlookCompatibleEmailService`
+## 🚨 Solução de Problemas
 
-```typescript
-export class OutlookCompatibleEmailService {
-  generateOutlookCompatibleEmail(config: EmailConfiguration): string
-  validatePortfolioData(portfolio: PortfolioData): boolean
-  convertImageToBase64(file: File): Promise<string>
-  generateEmailSubject(dataRef: Date): string
-}
-```
+### Erro: "Cliente não encontrado"
+- Verifique se o nome está exatamente como na planilha
+- Use aspas ao especificar nomes com espaços
 
-### Interfaces TypeScript
+### Erro: "Planilha não encontrada"
+- Confirme que as planilhas estão em `documentos/dados/`
+- Verifique os nomes dos arquivos
 
-```typescript
-interface EmailConfiguration {
-  clientName: string;
-  dataRef: Date;
-  portfolios: PortfolioData[];
-  logoBase64?: string;
-  customFooter?: string;
-}
+### Problemas de Email (Windows)
+- Certifique-se que o Outlook está instalado
+- Execute o script como administrador se necessário
 
-interface PortfolioData {
-  name: string;
-  type: string;
-  data: {
-    performance: PerformanceItem[];
-    retorno_financeiro?: number;
-    estrategias_destaque: string[];
-    ativos_promotores: string[];
-    ativos_detratores: string[];
-  };
-}
-```
+## 🔄 Versão
 
-## 📧 Compatibilidade de Email
-
-### ✅ Clientes Suportados
-- **Microsoft Outlook** (2007, 2010, 2013, 2016, 2019, 365)
-- **Outlook.com** (web)
-- **Gmail** (web e app)
-- **Apple Mail** (macOS e iOS)
-- **Yahoo Mail**
-- **Thunderbird**
-- **Android Email**
-
-### 🎨 Técnicas de Compatibilidade Implementadas
-
-#### 1. Estilos Inline
-```html
-<td style="background-color: #0D2035; color: #ffffff; padding: 12px;">
-```
-
-#### 2. Conditional Comments para Outlook
-```html
-<!--[if mso]>
-<style type="text/css">
-  body, table, td { font-family: Arial, sans-serif !important; }
-</style>
-<![endif]-->
-```
-
-#### 3. Estrutura de Tabelas
-```html
-<table border="0" cellpadding="0" cellspacing="0" width="100%">
-  <tr>
-    <td>Conteúdo aqui</td>
-  </tr>
-</table>
-```
-
-#### 4. Botões VML para Outlook
-```html
-<!--[if mso]>
-<v:roundrect href="link" style="height:44px;width:280px;" fillcolor="#0D2035">
-  <center>Texto do Botão</center>
-</v:roundrect>
-<![endif]-->
-```
-
-## 🎯 Melhores Práticas Implementadas
-
-### 1. **Reset CSS Específico para Email**
-- Margin e padding zerados
-- Box-sizing border-box
-- Font-family consistente
-
-### 2. **Estrutura Responsiva**
-- Media queries para dispositivos móveis
-- Larguras flexíveis
-- Fontes escaláveis
-
-### 3. **Imagens Otimizadas**
-- Conversão automática para Base64
-- Alt text para acessibilidade
-- Dimensões fixas para estabilidade
-
-### 4. **Cores e Contrastes**
-- Paleta de cores consistente
-- Alto contraste para legibilidade
-- Cores seguras para email
-
-## 🔍 Debugging e Testes
-
-### Testando Compatibilidade
-1. **Teste no Outlook Desktop**: Envie o email para uma conta Outlook
-2. **Teste no Gmail**: Verifique renderização no Gmail web
-3. **Teste em Dispositivos Móveis**: Confirme responsividade
-4. **Validação HTML**: Use validadores específicos para email
-
-### Ferramentas Recomendadas
-- **Litmus**: Teste em múltiplos clientes
-- **Email on Acid**: Validação de compatibilidade
-- **PutsMail**: Teste gratuito de emails
-- **Mail Tester**: Verificação de spam score
-
-## 🚨 Problemas Comuns e Soluções
-
-### Outlook não exibe cores de fundo
-**Solução**: Use tabelas aninhadas com estilos inline
-```html
-<table><tr><td style="background-color: #color;">Conteúdo</td></tr></table>
-```
-
-### Gmail remove estilos CSS
-**Solução**: Todos os estilos foram convertidos para inline
-
-### Imagens quebradas
-**Solução**: Logos convertidas para Base64 embutido
-
-### Botões não funcionam no Outlook
-**Solução**: Implementação VML com fallback HTML
-
-## 📝 Personalização
-
-### Modificando Cores
-Edite as constantes no serviço:
-```typescript
-private readonly corPrimaria = '#0D2035';
-private readonly corSuccesso = '#28a745';
-private readonly corPerigo = '#dc3545';
-```
-
-### Adicionando Novos Campos
-1. Atualize a interface `PortfolioData`
-2. Modifique o método `gerarSecaoPortfolio`
-3. Adicione campos no componente
-
-### Customizando Layout
-Edite os métodos privados no `OutlookCompatibleEmailService`:
-- `gerarCabecalho()`
-- `gerarRodape()`
-- `gerarTabelaPerformance()`
-
-## 🤝 Contribuindo
-
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
-3. Commit suas mudanças (`git commit -am 'Adiciona nova feature'`)
-4. Push para a branch (`git push origin feature/nova-feature`)
-5. Abra um Pull Request
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+**Versão Final Refatorada** - Código otimizado e simplificado para produção.
 
 ## 📞 Suporte
 
-Para dúvidas ou problemas:
-- Abra uma issue no GitHub
-- Entre em contato com a equipe de desenvolvimento
-
----
-
-**Desenvolvido com ❤️ pela equipe MMZR Family Office** 
+Para suporte técnico, consulte a documentação interna da MMZR Family Office. 
