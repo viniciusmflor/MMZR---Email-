@@ -45,8 +45,8 @@ class MMZRCompatibilidade:
                 
                 mail.HTMLBody = html_content
                 
-                # Enviar o email
-                mail.Send()
+                # Salvar o email
+                mail.Save()
                 
                 return True
                 
@@ -55,7 +55,7 @@ class MMZRCompatibilidade:
                 return False
         else:
             # Para sistemas não-Windows, simular o envio
-            print(f"[SIMULAÇÃO] Email enviado para: {destinatario}")
+            print(f"[SIMULAÇÃO] Email criado para: {destinatario}")
             print(f"[SIMULAÇÃO] Assunto: {assunto}")
             print(f"[SIMULAÇÃO] HTML: {caminho_html}")
             return True
