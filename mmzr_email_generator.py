@@ -291,7 +291,7 @@ class MMZREmailGenerator:
         
         return f"""
                 <!-- Carteira: {name} -->
-                <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 20px 0; border-collapse: collapse; background-color: #ffffff; border: 1px solid #e0e0e0; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
+                <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 40px 0; border-collapse: collapse; background-color: #ffffff; border: 1px solid #e0e0e0; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
                     <!-- Header da carteira -->
                     <tr>
                         <td style="background-color: #0D2035; color: #ffffff; padding: 10px;">
