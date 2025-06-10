@@ -87,13 +87,13 @@ class MMZREmailGenerator:
         return None
     
     def generate_html_email(self, client_name, data_ref, portfolios_data):
-        """Gera o HTML completo do email"""
+        """Gera o HTML completo do email compatível com Outlook"""
         
         mes = self.meses_pt[data_ref.month]
         ano = data_ref.year
         
         logo_base64 = self.get_logo_base64()
-        logo_img = f'<img src="{logo_base64}" alt="MMZR Family Office" width="80" height="64" style="display: block !important; border: 0 !important; max-width: 80px !important; height: auto !important;">' if logo_base64 else '<span style="color: #ffffff; font-weight: bold;">MMZR</span>'
+        logo_img = f'<img src="{logo_base64}" alt="MMZR Family Office" width="80" height="64" style="display: block; border: 0; max-width: 80px;">' if logo_base64 else '<span style="color: #ffffff; font-weight: bold;">MMZR</span>'
         
         carta_mes = self.meses_pt[datetime.now().month].lower()
         carta_link = f"https://www.mmzrfo.com.br/post/carta-mensal-{carta_mes}-{datetime.now().year}"
@@ -117,30 +117,60 @@ class MMZREmailGenerator:
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="only light">
-    <meta name="supported-color-schemes" content="only light">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <!--[if mso]>
-    <style type="text/css">
-        body, table, td, p, a, li, blockquote {{font-family: Arial, Helvetica, sans-serif !important;}}
-        table {{border-collapse: collapse !important;}}
-        img {{border: 0 !important;}}
-    </style>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:AllowPNG/>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
     <![endif]-->
+    <style type="text/css">
+        /* Outlook-specific resets */
+        table {{ border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }}
+        img {{ border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }}
+        p {{ margin: 0; }}
+        
+        /* Font fallbacks for Outlook */
+        .fallback-font {{ font-family: Arial, Helvetica, sans-serif; }}
+        
+        /* Outlook button fix */
+        .button-link {{ 
+            display: inline-block; 
+            text-decoration: none; 
+            background-color: #0D2035; 
+            color: #ffffff; 
+            padding: 12px 24px; 
+            border-radius: 4px; 
+            font-weight: bold; 
+            font-size: 14px; 
+            font-family: Arial, Helvetica, sans-serif;
+            border: none;
+        }}
+        
+        /* Remove box-shadow for Outlook */
+        <!--[if mso]>
+        .no-shadow {{ box-shadow: none !important; }}
+        <![endif]-->
+    </style>
 </head>
-<body style="margin: 0 !important; padding: 0 !important; background-color: #ffffff !important; color: #333333 !important; font-family: Arial, Helvetica, sans-serif !important; -webkit-text-size-adjust: 100% !important; -ms-text-size-adjust: 100% !important;">
-    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse: collapse !important; background-color: #ffffff !important; mso-table-lspace: 0pt !important; mso-table-rspace: 0pt !important;">
+<body style="margin: 0; padding: 0; background-color: #ffffff; color: #333333; font-family: Arial, Helvetica, sans-serif; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+    <!-- Main wrapper table -->
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse: collapse; background-color: #ffffff; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
         <!-- Header -->
         <tr>
-            <td style="background-color: #0D2035 !important; padding: 15px !important; text-align: center !important;">
-                <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse: collapse !important;">
+            <td style="background-color: #0D2035; padding: 15px; text-align: center;">
+                <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
                     <tr>
-                        <td style="text-align: left !important; vertical-align: middle !important; width: 90px !important;">
+                        <td style="text-align: left; vertical-align: middle; width: 90px;">
                             {logo_img}
                         </td>
-                        <td style="text-align: left !important; vertical-align: middle !important; padding-left: 15px !important;">
-                            <h1 style="margin: 0 !important; font-size: 20px !important; color: #ffffff !important; font-weight: bold !important; font-family: Arial, Helvetica, sans-serif !important;">MMZR Family Office</h1>
-                            <p style="margin: 5px 0 0 0 !important; font-size: 16px !important; color: #ffffff !important; font-family: Arial, Helvetica, sans-serif !important;">Relatório Mensal - {mes} {ano}</p>
+                        <td style="text-align: left; vertical-align: middle; padding-left: 15px;">
+                            <h1 style="margin: 0; font-size: 20px; color: #ffffff; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">MMZR Family Office</h1>
+                            <p style="margin: 5px 0 0 0; font-size: 16px; color: #ffffff; font-family: Arial, Helvetica, sans-serif;">Relatório Mensal - {mes} {ano}</p>
                         </td>
                     </tr>
                 </table>
@@ -149,234 +179,263 @@ class MMZREmailGenerator:
         
         <!-- Content -->
         <tr>
-            <td style="padding: 20px !important; background-color: #ffffff !important;">
-                <p style="margin: 0 0 15px 0 !important; font-size: 14px !important; color: #333333 !important; font-family: Arial, Helvetica, sans-serif !important;">
+            <td style="padding: 20px; background-color: #ffffff;">
+                <p style="margin: 0 0 15px 0; font-size: 14px; color: #333333; font-family: Arial, Helvetica, sans-serif;">
                     Olá {client_name},
                 </p>
                 
-                <p style="margin: 0 0 20px 0 !important; font-size: 14px !important; color: #333333 !important; line-height: 1.5 !important; font-family: Arial, Helvetica, sans-serif !important;">
+                <p style="margin: 0 0 20px 0; font-size: 14px; color: #333333; line-height: 1.5; font-family: Arial, Helvetica, sans-serif;">
                     Segue o relatório mensal com o desempenho de suas carteiras referente a <strong>{datetime.now().strftime('%d/%m/%Y')}</strong>.
                 </p>"""
         
         # Adicionar as seções das carteiras
         for portfolio in portfolios_data:
-            html += self.generate_portfolio_section(portfolio)
+            html += self.generate_portfolio_section_outlook_compatible(portfolio)
         
         # Adicionar comentários das carteiras na seção de observações se existirem
         comentarios_html = ""
         if comentarios_carteiras:
             comentarios_html = "<br>".join(comentarios_carteiras)
-            comentarios_html = f"<p style=\"margin: 10px 0 0 0 !important; color: #555555 !important; font-size: 12px !important; line-height: 1.4 !important; font-family: Arial, Helvetica, sans-serif !important;\">{comentarios_html}</p>"
+            comentarios_html = f"<p style=\"margin: 10px 0 0 0; color: #555555; font-size: 12px; line-height: 1.4; font-family: Arial, Helvetica, sans-serif;\">{comentarios_html}</p>"
         
         html += f"""
                  
                  <!-- Observações finais -->
-                 <div style="margin-top: 20px !important; padding: 15px !important; background-color: #f8f9fa !important; border-radius: 5px !important; border: 1px solid #e9ecef !important;">
-                     <p style="margin: 0 0 10px 0 !important; color: #555555 !important; font-size: 12px !important; line-height: 1.4 !important; font-family: Arial, Helvetica, sans-serif !important;">
-                         <strong>Obs.:</strong> Eventuais ajustes retroativos do IPCA, após a divulgação oficial do indicador, podem impactar marginalmente a rentabilidade do portfólio no mês anterior.
-                     </p>
-                     <p style="margin: 0 !important; color: #555555 !important; font-size: 11px !important; font-style: italic !important; line-height: 1.3 !important; font-family: Arial, Helvetica, sans-serif !important;">
-                         {obs_text}
-                     </p>
-                     {comentarios_html}
-                 </div>
+                 <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top: 20px; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
+                     <tr>
+                         <td style="padding: 15px; background-color: #f8f9fa; border: 1px solid #e9ecef;">
+                             <p style="margin: 0 0 10px 0; color: #555555; font-size: 12px; line-height: 1.4; font-family: Arial, Helvetica, sans-serif;">
+                                 <strong>Obs.:</strong> Eventuais ajustes retroativos do IPCA, após a divulgação oficial do indicador, podem impactar marginalmente a rentabilidade do portfólio no mês anterior.
+                             </p>
+                             <p style="margin: 0; color: #555555; font-size: 11px; font-style: italic; line-height: 1.3; font-family: Arial, Helvetica, sans-serif;">
+                                 {obs_text}
+                             </p>
+                             {comentarios_html}
+                         </td>
+                     </tr>
+                 </table>
 
                  <!-- Principais indicadores -->
-                 <div style="margin-top: 15px !important; padding: 10px !important; background-color: #f8f9fa !important; border-radius: 5px !important; border: 1px solid #e9ecef !important;">
-                     <p style="margin: 0 0 5px 0 !important; font-weight: bold !important; color: #333333 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">Principais indicadores:</p>
-                     <p style="margin: 0 !important; color: #555555 !important; font-size: 10px !important; font-style: italic !important; line-height: 1.3 !important; font-family: Arial, Helvetica, sans-serif !important;">
-                         Locais: CDI: +1,06%, Ibovespa: +3,69%, Prefixados (IRF-M): +2,99%, Ativos IPCA (IMA-B): +2,09%, Imobiliários (IFIX): +3,01%, Dólar (Ptax): -1,42%, Multimercados (IHFA): +3,85%<br>
-                         Internacionais: MSCI AC: +0,77%, S&P 500 -0,76%, Euro Stoxx 600 -1,21%, MSCI China -4,55%, MSCI EM +1,04%, Ouro +5,29%, Petróleo BRENT -14,97%, Minério de ferro -2,68% e Bitcoin (IBIT) +14,31%
-                     </p>
-                 </div>
+                 <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top: 15px; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
+                     <tr>
+                         <td style="padding: 10px; background-color: #f8f9fa; border: 1px solid #e9ecef;">
+                             <p style="margin: 0 0 5px 0; font-weight: bold; color: #333333; font-size: 12px; font-family: Arial, Helvetica, sans-serif;">Principais indicadores:</p>
+                             <p style="margin: 0; color: #555555; font-size: 10px; font-style: italic; line-height: 1.3; font-family: Arial, Helvetica, sans-serif;">
+                                 Locais: CDI: +1,06%, Ibovespa: +3,69%, Prefixados (IRF-M): +2,99%, Ativos IPCA (IMA-B): +2,09%, Imobiliários (IFIX): +3,01%, Dólar (Ptax): -1,42%, Multimercados (IHFA): +3,85%<br>
+                                 Internacionais: MSCI AC: +0,77%, S&P 500 -0,76%, Euro Stoxx 600 -1,21%, MSCI China -4,55%, MSCI EM +1,04%, Ouro +5,29%, Petróleo BRENT -14,97%, Minério de ferro -2,68% e Bitcoin (IBIT) +14,31%
+                             </p>
+                         </td>
+                     </tr>
+                 </table>
                  
                  <!-- Link para carta mensal -->
-                 <div style="margin-top: 20px !important; text-align: center !important;">
-                     <a href="{carta_link}" target="_blank" style="display: inline-block !important; background-color: #0D2035 !important; color: #ffffff !important; padding: 12px 24px !important; text-decoration: none !important; border-radius: 4px !important; font-weight: bold !important; font-size: 14px !important; font-family: Arial, Helvetica, sans-serif !important; text-align: center !important; border: none !important; -webkit-text-size-adjust: none !important;">Confira nossa carta completa: Carta {mes} {ano}</a>
-                 </div>
+                 <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top: 20px; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
+                     <tr>
+                         <td style="text-align: center;">
+                             <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
+                                 <tr>
+                                     <td style="background-color: #0D2035; border: 1px solid #0D2035; padding: 12px 24px; text-align: center;">
+                                         <a href="{carta_link}" target="_blank" style="color: #ffffff; text-decoration: none; font-weight: bold; font-size: 14px; font-family: Arial, Helvetica, sans-serif; display: block;">Confira nossa carta completa: Carta {mes} {ano}</a>
+                                     </td>
+                                 </tr>
+                             </table>
+                         </td>
+                     </tr>
+                 </table>
              </td>
          </tr>
          
          <!-- Footer -->
          <tr>
-             <td style="background-color: #f8f9fa !important; padding: 15px !important; text-align: center !important; border-top: 1px solid #e9ecef !important;">
-                 <p style="margin: 0 0 5px 0 !important; color: #666666 !important; font-size: 11px !important; font-family: Arial, Helvetica, sans-serif !important;">MMZR Family Office | Gestão de Patrimônio</p>
-                 <p style="margin: 0 !important; color: #666666 !important; font-size: 11px !important; font-family: Arial, Helvetica, sans-serif !important;">© {ano} MMZR Family Office. Todos os direitos reservados.</p>
+             <td style="background-color: #f8f9fa; padding: 15px; text-align: center; border-top: 1px solid #e9ecef;">
+                 <p style="margin: 0; font-size: 11px; color: #666666; font-family: Arial, Helvetica, sans-serif;">
+                     MMZR Family Office | Gestão de Patrimônios
+                 </p>
+                 <p style="margin: 5px 0 0 0; font-size: 10px; color: #888888; font-family: Arial, Helvetica, sans-serif;">
+                     © 2025 MMZR Family Office. Todos os direitos reservados.
+                 </p>
              </td>
          </tr>
      </table>
- </body>
- </html>"""
+</body>
+</html>"""
         
         return html
     
-    def generate_portfolio_section(self, portfolio):
-        """Gera a seção HTML de uma carteira específica"""
+    def generate_portfolio_section_outlook_compatible(self, portfolio):
+        """Gera a seção de carteira compatível com Outlook"""
+        name = portfolio['name']
+        portfolio_type = portfolio['type']
+        data = portfolio['data']
         
-        name = portfolio.get('name', 'Carteira')
-        portfolio_type = portfolio.get('type', 'Diversificada')
-        data = portfolio.get('data', {})
+        # Gerar performance table
+        performance_table = self.generate_performance_table_outlook_compatible(
+            data['performance'], 
+            data.get('retorno_financeiro', 0)
+        )
         
-        performance_data = data.get('performance', [])
-        retorno_financeiro = data.get('retorno_financeiro', 0)
-        estrategias_destaque = data.get('estrategias_destaque', [])
-        ativos_promotores = data.get('ativos_promotores', [])
-        ativos_detratores = data.get('ativos_detratores', [])
+        # Gerar estratégias de destaque
+        estrategias_html = self.generate_highlight_strategies_outlook_compatible(
+            data.get('estrategias_destaque', [])
+        )
         
-        html = f"""
-                 <!-- Carteira: {name} -->
-                 <div style="margin: 20px 0 !important; border: 1px solid #e0e0e0 !important; border-radius: 5px !important; overflow: hidden !important; background-color: #ffffff !important; box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;">
-                     <div style="background-color: #0D2035 !important; color: #ffffff !important; padding: 10px !important;">
-                         <h3 style="margin: 0 !important; font-size: 16px !important; color: #ffffff !important; font-weight: bold !important; font-family: Arial, Helvetica, sans-serif !important;">{name}</h3>
-                         <span style="font-size: 14px !important; color: #ffffff !important; font-family: Arial, Helvetica, sans-serif !important; opacity: 0.9 !important;">{portfolio_type}</span>
-                     </div>
-                     <div style="padding: 10px !important; background-color: #ffffff !important;">
-                         {self.generate_performance_table(performance_data, retorno_financeiro)}
-                         {self.generate_highlight_strategies(estrategias_destaque)}
-                         {self.generate_promoter_assets(ativos_promotores)}
-                         {self.generate_detractor_assets(ativos_detratores)}
-                     </div>
-                 </div>"""
+        # Gerar ativos promotores
+        promotores_html = self.generate_promoter_assets_outlook_compatible(
+            data.get('ativos_promotores', [])
+        )
         
-        return html
+        # Gerar ativos detratores
+        detratores_html = self.generate_detractor_assets_outlook_compatible(
+            data.get('ativos_detratores', [])
+        )
+        
+        return f"""
+                <!-- Carteira: {name} -->
+                <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 20px 0; border-collapse: collapse; background-color: #ffffff; border: 1px solid #e0e0e0; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
+                    <!-- Header da carteira -->
+                    <tr>
+                        <td style="background-color: #0D2035; color: #ffffff; padding: 10px;">
+                            <h3 style="margin: 0; font-size: 16px; color: #ffffff; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">{name}</h3>
+                            <span style="font-size: 14px; color: #ffffff; font-family: Arial, Helvetica, sans-serif; opacity: 0.9;">{portfolio_type}</span>
+                        </td>
+                    </tr>
+                    <!-- Conteúdo da carteira -->
+                    <tr>
+                        <td style="padding: 10px; background-color: #ffffff;">
+                            
+                            {performance_table}
+                            
+                            {estrategias_html}
+                            
+                            {promotores_html}
+                            
+                            {detratores_html}
+                            
+                        </td>
+                    </tr>
+                </table>"""
     
-    def generate_performance_table(self, performance_data, retorno_financeiro=None):
-        """Gera a tabela HTML de performance"""
+    def generate_performance_table_outlook_compatible(self, performance_data, retorno_financeiro=None):
+        """Gera tabela de performance compatível com Outlook"""
         
-        # Filtrar apenas os períodos necessários
-        filtered_data = []
-        mes_adicionado = False
-        ano_adicionado = False
-        
+        rows_html = ""
         for item in performance_data:
-            periodo = item['periodo'].lower() if isinstance(item['periodo'], str) else ""
-            
-            if ":" in periodo and any(m.lower() in periodo for m in self.meses_pt.values()) and not mes_adicionado:
-                filtered_data.append(item)
-                mes_adicionado = True
-            elif "no ano" in periodo and not ano_adicionado:
-                filtered_data.append(item)
-                ano_adicionado = True
-                
-            if mes_adicionado and ano_adicionado:
-                break
-        
-        html = f"""
-                         <h4 style="font-size: 14px !important; color: #0D2035 !important; margin: 0 0 8px 0 !important; padding-bottom: 4px !important; border-bottom: 1px solid #e0e0e0 !important; font-weight: bold !important; font-family: Arial, Helvetica, sans-serif !important;">Performance</h4>
-                         <table cellpadding="0" cellspacing="0" border="0" style="width: 100% !important; border-collapse: collapse !important; font-size: 12px !important; margin-bottom: 10px !important; background-color: #ffffff !important; border: 1px solid #dee2e6 !important; font-family: Arial, Helvetica, sans-serif !important;">
-                             <thead>
-                                 <tr>
-                                     <th style="background-color: #f8f9fa !important; color: #0D2035 !important; font-weight: bold !important; padding: 6px 4px !important; text-align: left !important; border: 1px solid #dee2e6 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">Período</th>
-                                     <th style="background-color: #f8f9fa !important; color: #0D2035 !important; font-weight: bold !important; padding: 6px 4px !important; text-align: center !important; border: 1px solid #dee2e6 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">Carteira</th>
-                                     <th style="background-color: #f8f9fa !important; color: #0D2035 !important; font-weight: bold !important; padding: 6px 4px !important; text-align: center !important; border: 1px solid #dee2e6 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">Benchmark</th>
-                                     <th style="background-color: #f8f9fa !important; color: #0D2035 !important; font-weight: bold !important; padding: 6px 4px !important; text-align: center !important; border: 1px solid #dee2e6 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">Carteira vs. Benchmark</th>
-                                 </tr>
-                             </thead>
-                             <tbody>"""
-        
-        # Adicionar cada linha de performance
-        for item in filtered_data:
             periodo = item['periodo']
-            carteira = item['carteira']
-            benchmark = item['benchmark']
-            diferenca = item['diferenca']
+            carteira_val = item['carteira']
+            benchmark_val = item['benchmark'] 
+            diferenca_val = item['diferenca']
             
-            carteira_color = "#28a745" if carteira > 0 else "#dc3545" if carteira < 0 else "#333333"
-            diferenca_color = "#28a745" if diferenca > 0 else "#dc3545" if diferenca < 0 else "#333333"
+            # Formatação de valores
+            carteira_formatted = self.format_percentage(carteira_val)
+            benchmark_formatted = self.format_percentage(benchmark_val)
+            diferenca_formatted = f"{diferenca_val:.2f} p.p."
             
-            html += f"""
-                                 <tr>
-                                     <td style="padding: 6px 4px !important; text-align: left !important; border: 1px solid #dee2e6 !important; background-color: #ffffff !important; color: #333333 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">{periodo}</td>
-                                     <td style="padding: 6px 4px !important; text-align: center !important; border: 1px solid #dee2e6 !important; color: {carteira_color} !important; font-weight: bold !important; background-color: #ffffff !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">{self.format_percentage(carteira)}</td>
-                                     <td style="padding: 6px 4px !important; text-align: center !important; border: 1px solid #dee2e6 !important; background-color: #ffffff !important; color: #333333 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">{self.format_percentage(benchmark)}</td>
-                                     <td style="padding: 6px 4px !important; text-align: center !important; border: 1px solid #dee2e6 !important; color: {diferenca_color} !important; font-weight: bold !important; background-color: #ffffff !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">{self.format_percentage(diferenca).replace('%', ' p.p.')}</td>
-                                 </tr>"""
+            # Cores condicionais
+            carteira_color = "#28a745" if carteira_val >= 0 else "#dc3545"
+            diferenca_color = "#28a745" if diferenca_val >= 0 else "#dc3545"
+            if abs(diferenca_val) < 0.01:
+                diferenca_color = "#333333"
+                
+            rows_html += f"""
+                                <tr>
+                                    <td style="padding: 6px 4px; text-align: left; border: 1px solid #dee2e6; background-color: #ffffff; color: #333333; font-size: 12px; font-family: Arial, Helvetica, sans-serif;">{periodo}</td>
+                                    <td style="padding: 6px 4px; text-align: center; border: 1px solid #dee2e6; color: {carteira_color}; font-weight: bold; background-color: #ffffff; font-size: 12px; font-family: Arial, Helvetica, sans-serif;">{carteira_formatted}</td>
+                                    <td style="padding: 6px 4px; text-align: center; border: 1px solid #dee2e6; background-color: #ffffff; color: #333333; font-size: 12px; font-family: Arial, Helvetica, sans-serif;">{benchmark_formatted}</td>
+                                    <td style="padding: 6px 4px; text-align: center; border: 1px solid #dee2e6; color: {diferenca_color}; font-weight: bold; background-color: #ffffff; font-size: 12px; font-family: Arial, Helvetica, sans-serif;">{diferenca_formatted}</td>
+                                </tr>"""
         
-        # Adicionar linha de retorno financeiro se disponível
+        # Linha de retorno financeiro
         if retorno_financeiro is not None:
-            color = "#28a745" if retorno_financeiro > 0 else "#dc3545" if retorno_financeiro < 0 else "#333333"
-            html += f"""
-                                 <tr>
-                                     <td style="padding: 6px 4px !important; text-align: left !important; border: 1px solid #dee2e6 !important; font-weight: bold !important; background-color: #ffffff !important; color: #333333 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">Retorno Financeiro:</td>
-                                     <td style="padding: 6px 4px !important; text-align: center !important; border: 1px solid #dee2e6 !important; color: {color} !important; font-weight: bold !important; background-color: #ffffff !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;" colspan="3">{self.format_currency(retorno_financeiro)}</td>
-                                 </tr>"""
+            retorno_formatted = self.format_currency(retorno_financeiro)
+            retorno_color = "#28a745" if retorno_financeiro >= 0 else "#dc3545"
+            
+            rows_html += f"""
+                                <tr>
+                                    <td style="padding: 6px 4px; text-align: left; border: 1px solid #dee2e6; font-weight: bold; background-color: #ffffff; color: #333333; font-size: 12px; font-family: Arial, Helvetica, sans-serif;">Retorno Financeiro:</td>
+                                    <td style="padding: 6px 4px; text-align: center; border: 1px solid #dee2e6; color: {retorno_color}; font-weight: bold; background-color: #ffffff; font-size: 12px; font-family: Arial, Helvetica, sans-serif;" colspan="3">{retorno_formatted}</td>
+                                </tr>"""
         
-        html += """
-                             </tbody>
-                         </table>"""
-        return html
+        return f"""
+                            <h4 style="font-size: 14px; color: #0D2035; margin: 0 0 8px 0; padding-bottom: 4px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">Performance</h4>
+                            <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px; background-color: #ffffff; border: 1px solid #dee2e6; font-family: Arial, Helvetica, sans-serif; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
+                                <thead>
+                                    <tr>
+                                        <th style="background-color: #f8f9fa; color: #0D2035; font-weight: bold; padding: 6px 4px; text-align: left; border: 1px solid #dee2e6; font-size: 12px; font-family: Arial, Helvetica, sans-serif;">Período</th>
+                                        <th style="background-color: #f8f9fa; color: #0D2035; font-weight: bold; padding: 6px 4px; text-align: center; border: 1px solid #dee2e6; font-size: 12px; font-family: Arial, Helvetica, sans-serif;">Carteira</th>
+                                        <th style="background-color: #f8f9fa; color: #0D2035; font-weight: bold; padding: 6px 4px; text-align: center; border: 1px solid #dee2e6; font-size: 12px; font-family: Arial, Helvetica, sans-serif;">Benchmark</th>
+                                        <th style="background-color: #f8f9fa; color: #0D2035; font-weight: bold; padding: 6px 4px; text-align: center; border: 1px solid #dee2e6; font-size: 12px; font-family: Arial, Helvetica, sans-serif;">Carteira vs. Benchmark</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {rows_html}
+                                </tbody>
+                            </table>"""
     
-    def generate_highlight_strategies(self, estrategias):
-        """Gera a seção de estratégias de destaque"""
-        
+    def generate_highlight_strategies_outlook_compatible(self, estrategias):
+        """Gera estratégias de destaque compatível com Outlook"""
         if not estrategias:
             return ""
-        
-        html = """
-                         <h4 style="font-size: 14px; color: #0D2035; margin: 10px 0 6px 0; padding-bottom: 4px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">Estratégias de Destaque</h4>
-                         <div style="margin: 0 0 8px 0; padding: 4px; background-color: #f0f8ff; border-left: 4px solid #0D2035; border-radius: 3px;">
-                             <ul style="margin: 0; padding-left: 10px; list-style-type: disc;">"""
-        
+            
+        items_html = ""
         for estrategia in estrategias:
-            html += f"""
-                                 <li style="margin-bottom: 1px; font-size: 12px; color: #333333; line-height: 1.3; font-family: Arial, Helvetica, sans-serif;">{estrategia}</li>"""
+            items_html += f"""
+                                        <li style="margin-bottom: 1px; font-size: 12px; color: #333333; line-height: 1.3; font-family: Arial, Helvetica, sans-serif;">{estrategia}</li>"""
         
-        html += """
-                             </ul>
-                         </div>"""
-        return html
+        return f"""
+                            <h4 style="font-size: 14px; color: #0D2035; margin: 10px 0 6px 0; padding-bottom: 4px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">Estratégias de Destaque</h4>
+                            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 8px 0; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
+                                <tr>
+                                    <td style="padding: 4px; background-color: #f0f8ff; border-left: 4px solid #0D2035;">
+                                        <ul style="margin: 0; padding-left: 10px; list-style-type: disc;">
+                                            {items_html}
+                                        </ul>
+                                    </td>
+                                </tr>
+                            </table>"""
     
-    def generate_promoter_assets(self, ativos):
-        """Gera a seção de ativos promotores"""
-        
+    def generate_promoter_assets_outlook_compatible(self, ativos):
+        """Gera ativos promotores compatível com Outlook"""
         if not ativos:
             return ""
-        
-        html = """
-                         <h4 style="font-size: 14px; color: #0D2035; margin: 10px 0 6px 0; padding-bottom: 4px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">Ativos Promotores</h4>
-                         <div style="margin: 0 0 8px 0; padding: 4px; background-color: #f0fff0; border-left: 4px solid #28a745; border-radius: 3px;">
-                             <ul style="margin: 0; padding-left: 10px; list-style-type: disc;">"""
-        
+            
+        items_html = ""
         for ativo in ativos:
-            # Adicionar o símbolo "+" antes da porcentagem se for um valor positivo
-            ativo_formatado = ativo
-            percentage_match = re.search(r'\(([-+]?\d+[.,]?\d*)%\)', ativo)
-            if percentage_match:
-                percentage_str = percentage_match.group(1).replace(',', '.')
-                try:
-                    percentage = float(percentage_str)
-                    if percentage > 0 and not percentage_str.startswith('+'):
-                        ativo_formatado = ativo.replace(f"({percentage_str}%)", f"(+{percentage_str}%)")
-                except ValueError:
-                    pass
-                    
-            html += f"""
-                                 <li style="margin-bottom: 1px; font-size: 12px; color: #2e7d32; line-height: 1.3; font-family: Arial, Helvetica, sans-serif;">{ativo_formatado}</li>"""
+            items_html += f"""
+                                        <li style="margin-bottom: 1px; font-size: 12px; color: #2e7d32; line-height: 1.3; font-family: Arial, Helvetica, sans-serif;">{ativo}</li>"""
         
-        html += """
-                             </ul>
-                         </div>"""
-        return html
+        return f"""
+                            <h4 style="font-size: 14px; color: #0D2035; margin: 10px 0 6px 0; padding-bottom: 4px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">Ativos Promotores</h4>
+                            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 8px 0; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
+                                <tr>
+                                    <td style="padding: 4px; background-color: #f0fff0; border-left: 4px solid #28a745;">
+                                        <ul style="margin: 0; padding-left: 10px; list-style-type: disc;">
+                                            {items_html}
+                                        </ul>
+                                    </td>
+                                </tr>
+                            </table>"""
     
-    def generate_detractor_assets(self, ativos):
-        """Gera a seção de ativos detratores"""
-        
+    def generate_detractor_assets_outlook_compatible(self, ativos):
+        """Gera ativos detratores compatível com Outlook"""
         if not ativos:
             return ""
-        
-        html = """
-                         <h4 style="font-size: 14px; color: #0D2035; margin: 10px 0 6px 0; padding-bottom: 4px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">Ativos Detratores</h4>
-                         <div style="margin: 0 0 8px 0; padding: 4px; background-color: #fff5f5; border-left: 4px solid #dc3545; border-radius: 3px;">
-                             <ul style="margin: 0; padding-left: 10px; list-style-type: disc;">"""
-        
+            
+        items_html = ""
         for ativo in ativos:
-            html += f"""
-                                 <li style="margin-bottom: 1px; font-size: 12px; color: #c62828; line-height: 1.3; font-family: Arial, Helvetica, sans-serif;">{ativo}</li>"""
+            items_html += f"""
+                                        <li style="margin-bottom: 1px; font-size: 12px; color: #c62828; line-height: 1.3; font-family: Arial, Helvetica, sans-serif;">{ativo}</li>"""
         
-        html += """
-                             </ul>
-                         </div>"""
-        return html
+        return f"""
+                            <h4 style="font-size: 14px; color: #0D2035; margin: 10px 0 6px 0; padding-bottom: 4px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">Ativos Detratores</h4>
+                            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 8px 0; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
+                                <tr>
+                                    <td style="padding: 4px; background-color: #fff5f5; border-left: 4px solid #dc3545;">
+                                        <ul style="margin: 0; padding-left: 10px; list-style-type: disc;">
+                                            {items_html}
+                                        </ul>
+                                    </td>
+                                </tr>
+                            </table>"""
     
     def save_email_to_file(self, html_content, client_name, output_path=None):
         """Salva o conteúdo HTML do e-mail em um arquivo"""
