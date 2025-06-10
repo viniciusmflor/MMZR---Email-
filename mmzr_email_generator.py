@@ -66,14 +66,24 @@ class MMZREmailGenerator:
     
     def get_logo_base64(self):
         """Converte a logo em base64"""
-        try:
-            logo_path = os.path.join("recursos_email", "logo-MMZR-azul.png")
-            if os.path.exists(logo_path):
-                with open(logo_path, "rb") as image_file:
-                    encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
-                    return f"data:image/png;base64,{encoded_string}"
-        except Exception:
-            pass
+        # Lista de caminhos possíveis para a logo
+        possible_paths = [
+            os.path.join("recursos_email", "logo-MMZR-azul.png"),
+            os.path.join("documentos", "img", "logo-MMZR-azul.png"),
+            "logo-MMZR-azul.png"
+        ]
+        
+        for logo_path in possible_paths:
+            try:
+                if os.path.exists(logo_path):
+                    with open(logo_path, "rb") as image_file:
+                        encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+                        return f"data:image/png;base64,{encoded_string}"
+            except Exception as e:
+                print(f"Erro ao tentar carregar logo de {logo_path}: {e}")
+                continue
+        
+        print("AVISO: Logo não encontrada em nenhum dos caminhos esperados")
         return None
     
     def generate_html_email(self, client_name, data_ref, portfolios_data):
@@ -100,8 +110,7 @@ class MMZREmailGenerator:
         for portfolio in portfolios_data:
             comentario = portfolio.get('data', {}).get('comentarios', None)
             if comentario:
-                nome_carteira = portfolio.get('name', 'Carteira')
-                comentarios_carteiras.append(f"<strong>Comentário {nome_carteira}:</strong> {comentario}")
+                comentarios_carteiras.append(f"<strong>Comentário:</strong> {comentario}")
         
         html = f"""<!DOCTYPE html>
 <html lang="pt-BR">
@@ -216,12 +225,12 @@ class MMZREmailGenerator:
         
         html = f"""
                  <!-- Carteira: {name} -->
-                 <div style="margin: 25px 0 !important; border: 1px solid #e0e0e0 !important; border-radius: 5px !important; overflow: hidden !important; background-color: #ffffff !important; box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;">
-                     <div style="background-color: #0D2035 !important; color: #ffffff !important; padding: 12px !important;">
+                 <div style="margin: 20px 0 !important; border: 1px solid #e0e0e0 !important; border-radius: 5px !important; overflow: hidden !important; background-color: #ffffff !important; box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;">
+                     <div style="background-color: #0D2035 !important; color: #ffffff !important; padding: 10px !important;">
                          <h3 style="margin: 0 !important; font-size: 16px !important; color: #ffffff !important; font-weight: bold !important; font-family: Arial, Helvetica, sans-serif !important;">{name}</h3>
                          <span style="font-size: 14px !important; color: #ffffff !important; font-family: Arial, Helvetica, sans-serif !important; opacity: 0.9 !important;">{portfolio_type}</span>
                      </div>
-                     <div style="padding: 15px !important; background-color: #ffffff !important;">
+                     <div style="padding: 10px !important; background-color: #ffffff !important;">
                          {self.generate_performance_table(performance_data, retorno_financeiro)}
                          {self.generate_highlight_strategies(estrategias_destaque)}
                          {self.generate_promoter_assets(ativos_promotores)}
@@ -253,14 +262,14 @@ class MMZREmailGenerator:
                 break
         
         html = f"""
-                         <h4 style="font-size: 14px !important; color: #0D2035 !important; margin: 0 0 10px 0 !important; padding-bottom: 5px !important; border-bottom: 1px solid #e0e0e0 !important; font-weight: bold !important; font-family: Arial, Helvetica, sans-serif !important;">Performance</h4>
-                         <table cellpadding="0" cellspacing="0" border="0" style="width: 100% !important; border-collapse: collapse !important; font-size: 12px !important; margin-bottom: 15px !important; background-color: #ffffff !important; border: 1px solid #dee2e6 !important; font-family: Arial, Helvetica, sans-serif !important;">
+                         <h4 style="font-size: 14px !important; color: #0D2035 !important; margin: 0 0 8px 0 !important; padding-bottom: 4px !important; border-bottom: 1px solid #e0e0e0 !important; font-weight: bold !important; font-family: Arial, Helvetica, sans-serif !important;">Performance</h4>
+                         <table cellpadding="0" cellspacing="0" border="0" style="width: 100% !important; border-collapse: collapse !important; font-size: 12px !important; margin-bottom: 10px !important; background-color: #ffffff !important; border: 1px solid #dee2e6 !important; font-family: Arial, Helvetica, sans-serif !important;">
                              <thead>
                                  <tr>
-                                     <th style="background-color: #f8f9fa !important; color: #0D2035 !important; font-weight: bold !important; padding: 8px 6px !important; text-align: left !important; border: 1px solid #dee2e6 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">Período</th>
-                                     <th style="background-color: #f8f9fa !important; color: #0D2035 !important; font-weight: bold !important; padding: 8px 6px !important; text-align: center !important; border: 1px solid #dee2e6 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">Carteira</th>
-                                     <th style="background-color: #f8f9fa !important; color: #0D2035 !important; font-weight: bold !important; padding: 8px 6px !important; text-align: center !important; border: 1px solid #dee2e6 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">Benchmark</th>
-                                     <th style="background-color: #f8f9fa !important; color: #0D2035 !important; font-weight: bold !important; padding: 8px 6px !important; text-align: center !important; border: 1px solid #dee2e6 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">Carteira vs. Benchmark</th>
+                                     <th style="background-color: #f8f9fa !important; color: #0D2035 !important; font-weight: bold !important; padding: 6px 4px !important; text-align: left !important; border: 1px solid #dee2e6 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">Período</th>
+                                     <th style="background-color: #f8f9fa !important; color: #0D2035 !important; font-weight: bold !important; padding: 6px 4px !important; text-align: center !important; border: 1px solid #dee2e6 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">Carteira</th>
+                                     <th style="background-color: #f8f9fa !important; color: #0D2035 !important; font-weight: bold !important; padding: 6px 4px !important; text-align: center !important; border: 1px solid #dee2e6 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">Benchmark</th>
+                                     <th style="background-color: #f8f9fa !important; color: #0D2035 !important; font-weight: bold !important; padding: 6px 4px !important; text-align: center !important; border: 1px solid #dee2e6 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">Carteira vs. Benchmark</th>
                                  </tr>
                              </thead>
                              <tbody>"""
@@ -277,10 +286,10 @@ class MMZREmailGenerator:
             
             html += f"""
                                  <tr>
-                                     <td style="padding: 8px 6px !important; text-align: left !important; border: 1px solid #dee2e6 !important; background-color: #ffffff !important; color: #333333 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">{periodo}</td>
-                                     <td style="padding: 8px 6px !important; text-align: center !important; border: 1px solid #dee2e6 !important; color: {carteira_color} !important; font-weight: bold !important; background-color: #ffffff !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">{self.format_percentage(carteira)}</td>
-                                     <td style="padding: 8px 6px !important; text-align: center !important; border: 1px solid #dee2e6 !important; background-color: #ffffff !important; color: #333333 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">{self.format_percentage(benchmark)}</td>
-                                     <td style="padding: 8px 6px !important; text-align: center !important; border: 1px solid #dee2e6 !important; color: {diferenca_color} !important; font-weight: bold !important; background-color: #ffffff !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">{self.format_percentage(diferenca).replace('%', ' p.p.')}</td>
+                                     <td style="padding: 6px 4px !important; text-align: left !important; border: 1px solid #dee2e6 !important; background-color: #ffffff !important; color: #333333 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">{periodo}</td>
+                                     <td style="padding: 6px 4px !important; text-align: center !important; border: 1px solid #dee2e6 !important; color: {carteira_color} !important; font-weight: bold !important; background-color: #ffffff !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">{self.format_percentage(carteira)}</td>
+                                     <td style="padding: 6px 4px !important; text-align: center !important; border: 1px solid #dee2e6 !important; background-color: #ffffff !important; color: #333333 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">{self.format_percentage(benchmark)}</td>
+                                     <td style="padding: 6px 4px !important; text-align: center !important; border: 1px solid #dee2e6 !important; color: {diferenca_color} !important; font-weight: bold !important; background-color: #ffffff !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">{self.format_percentage(diferenca).replace('%', ' p.p.')}</td>
                                  </tr>"""
         
         # Adicionar linha de retorno financeiro se disponível
@@ -288,8 +297,8 @@ class MMZREmailGenerator:
             color = "#28a745" if retorno_financeiro > 0 else "#dc3545" if retorno_financeiro < 0 else "#333333"
             html += f"""
                                  <tr>
-                                     <td style="padding: 8px 6px !important; text-align: left !important; border: 1px solid #dee2e6 !important; font-weight: bold !important; background-color: #ffffff !important; color: #333333 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">Retorno Financeiro:</td>
-                                     <td style="padding: 8px 6px !important; text-align: center !important; border: 1px solid #dee2e6 !important; color: {color} !important; font-weight: bold !important; background-color: #ffffff !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;" colspan="3">{self.format_currency(retorno_financeiro)}</td>
+                                     <td style="padding: 6px 4px !important; text-align: left !important; border: 1px solid #dee2e6 !important; font-weight: bold !important; background-color: #ffffff !important; color: #333333 !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;">Retorno Financeiro:</td>
+                                     <td style="padding: 6px 4px !important; text-align: center !important; border: 1px solid #dee2e6 !important; color: {color} !important; font-weight: bold !important; background-color: #ffffff !important; font-size: 12px !important; font-family: Arial, Helvetica, sans-serif !important;" colspan="3">{self.format_currency(retorno_financeiro)}</td>
                                  </tr>"""
         
         html += """
@@ -304,9 +313,9 @@ class MMZREmailGenerator:
             return ""
         
         html = """
-                         <h4 style="font-size: 14px; color: #0D2035; margin: 15px 0 8px 0; padding-bottom: 5px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">Estratégias de Destaque</h4>
-                         <div style="margin: 0 0 12px 0; padding: 6px; background-color: #f0f8ff; border-left: 4px solid #0D2035; border-radius: 3px;">
-                             <ul style="margin: 0; padding-left: 12px; list-style-type: disc;">"""
+                         <h4 style="font-size: 14px; color: #0D2035; margin: 10px 0 6px 0; padding-bottom: 4px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">Estratégias de Destaque</h4>
+                         <div style="margin: 0 0 8px 0; padding: 4px; background-color: #f0f8ff; border-left: 4px solid #0D2035; border-radius: 3px;">
+                             <ul style="margin: 0; padding-left: 10px; list-style-type: disc;">"""
         
         for estrategia in estrategias:
             html += f"""
@@ -324,9 +333,9 @@ class MMZREmailGenerator:
             return ""
         
         html = """
-                         <h4 style="font-size: 14px; color: #0D2035; margin: 15px 0 8px 0; padding-bottom: 5px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">Ativos Promotores</h4>
-                         <div style="margin: 0 0 12px 0; padding: 6px; background-color: #f0fff0; border-left: 4px solid #28a745; border-radius: 3px;">
-                             <ul style="margin: 0; padding-left: 12px; list-style-type: disc;">"""
+                         <h4 style="font-size: 14px; color: #0D2035; margin: 10px 0 6px 0; padding-bottom: 4px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">Ativos Promotores</h4>
+                         <div style="margin: 0 0 8px 0; padding: 4px; background-color: #f0fff0; border-left: 4px solid #28a745; border-radius: 3px;">
+                             <ul style="margin: 0; padding-left: 10px; list-style-type: disc;">"""
         
         for ativo in ativos:
             # Adicionar o símbolo "+" antes da porcentagem se for um valor positivo
@@ -356,9 +365,9 @@ class MMZREmailGenerator:
             return ""
         
         html = """
-                         <h4 style="font-size: 14px; color: #0D2035; margin: 15px 0 8px 0; padding-bottom: 5px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">Ativos Detratores</h4>
-                         <div style="margin: 0 0 12px 0; padding: 6px; background-color: #fff5f5; border-left: 4px solid #dc3545; border-radius: 3px;">
-                             <ul style="margin: 0; padding-left: 12px; list-style-type: disc;">"""
+                         <h4 style="font-size: 14px; color: #0D2035; margin: 10px 0 6px 0; padding-bottom: 4px; border-bottom: 1px solid #e0e0e0; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">Ativos Detratores</h4>
+                         <div style="margin: 0 0 8px 0; padding: 4px; background-color: #fff5f5; border-left: 4px solid #dc3545; border-radius: 3px;">
+                             <ul style="margin: 0; padding-left: 10px; list-style-type: disc;">"""
         
         for ativo in ativos:
             html += f"""
