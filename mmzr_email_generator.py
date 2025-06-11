@@ -178,34 +178,34 @@ class MMZREmailGenerator:
         <tr>
             <td style="padding: 20px 10px;">
                 <!-- Main email content table with max width -->
-                <table cellpadding="0" cellspacing="0" border="0" width="680" style="max-width: 680px; margin: 0; border-collapse: collapse; background-color: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.1); mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
-                    <!-- Header -->
+                <table cellpadding="0" cellspacing="0" border="0" width="680" style="max-width: 680px; margin: 0 auto; border-collapse: collapse; background-color: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.1); mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
+        <!-- Header -->
+        <tr>
+            <td style="background-color: #0D2035; padding: 16px; text-align: center;">
+                <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
                     <tr>
-                        <td style="background-color: #0D2035; padding: 16px; text-align: center;">
-                            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
-                                <tr>
-                                    <td style="text-align: left; vertical-align: middle; width: 90px;">
-                                        {logo_img}
-                                    </td>
-                                    <td style="text-align: left; vertical-align: middle; padding-left: 16px;">
-                                        <h1 style="margin: 0; font-size: 20px; color: #ffffff; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">MMZR Family Office</h1>
-                                        <p style="margin: 4px 0 0 0; font-size: 16px; color: #ffffff; font-family: Arial, Helvetica, sans-serif;">Relatório Mensal - {mes} {ano}</p>
-                                    </td>
-                                </tr>
-                            </table>
+                        <td style="text-align: left; vertical-align: middle; width: 90px;">
+                            {logo_img}
+                        </td>
+                        <td style="text-align: left; vertical-align: middle; padding-left: 16px;">
+                            <h1 style="margin: 0; font-size: 20px; color: #ffffff; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">MMZR Family Office</h1>
+                            <p style="margin: 4px 0 0 0; font-size: 16px; color: #ffffff; font-family: Arial, Helvetica, sans-serif;">Relatório Mensal - {mes} {ano}</p>
                         </td>
                     </tr>
-                    
-                    <!-- Content -->
-                    <tr>
-                        <td style="padding: 16px; background-color: #ffffff;">
-                            <p style="margin: 0 0 12px 0; font-size: 14px; color: #333333; font-family: Arial, Helvetica, sans-serif;">
-                                Olá {client_name},
-                            </p>
-                            
-                            <p style="margin: 0 0 16px 0; font-size: 14px; color: #333333; line-height: 1.4; font-family: Arial, Helvetica, sans-serif;">
+                </table>
+            </td>
+        </tr>
+        
+        <!-- Content -->
+        <tr>
+            <td style="padding: 16px; background-color: #ffffff;">
+                <p style="margin: 0 0 12px 0; font-size: 14px; color: #333333; font-family: Arial, Helvetica, sans-serif;">
+                    Olá {client_name},
+                </p>
+                
+                <p style="margin: 0 0 16px 0; font-size: 14px; color: #333333; line-height: 1.4; font-family: Arial, Helvetica, sans-serif;">
                                 Segue o relatório mensal com o desempenho de suas carteiras referente a <strong>{data_ref.strftime('%d/%m/%Y')}</strong>.
-                            </p>"""
+                </p>"""
         
         # Adicionar seções das carteiras
         for portfolio in portfolios_data:
@@ -244,8 +244,8 @@ class MMZREmailGenerator:
                  <!-- Link para carta mensal -->
                  <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top: 16px; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
                      <tr>
-                         <td style="text-align: left;">
-                             <table cellpadding="0" cellspacing="0" border="0" style="margin: 0; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
+                         <td style="text-align: center;">
+                             <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
                                  <tr>
                                      <td style="background-color: #0D2035; border: 1px solid #0D2035; padding: 12px 24px; text-align: center;">
                                          <a href="{carta_link}" target="_blank" style="color: #ffffff; text-decoration: none; font-weight: bold; font-size: 14px; font-family: Arial, Helvetica, sans-serif; display: block;">Confira nossa carta completa: Carta {mes} {ano}</a>
@@ -255,24 +255,24 @@ class MMZREmailGenerator:
                          </td>
                      </tr>
                  </table>
-                        </td>
-                    </tr>
-                    
-                    <!-- Footer -->
-                    <tr>
-                        <td style="background-color: #f8f9fa; padding: 12px; text-align: center; border-top: 1px solid #e9ecef;">
-                            <p style="margin: 0; font-size: 11px; color: #666666; font-family: Arial, Helvetica, sans-serif;">
-                                MMZR Family Office | Gestão de Patrimônios
-                            </p>
-                            <p style="margin: 4px 0 0 0; font-size: 10px; color: #888888; font-family: Arial, Helvetica, sans-serif;">
-                                © 2025 MMZR Family Office. Todos os direitos reservados.
-                            </p>
+             </td>
+         </tr>
+         
+         <!-- Footer -->
+         <tr>
+             <td style="background-color: #f8f9fa; padding: 12px; text-align: center; border-top: 1px solid #e9ecef;">
+                 <p style="margin: 0; font-size: 11px; color: #666666; font-family: Arial, Helvetica, sans-serif;">
+                     MMZR Family Office | Gestão de Patrimônios
+                 </p>
+                 <p style="margin: 4px 0 0 0; font-size: 10px; color: #888888; font-family: Arial, Helvetica, sans-serif;">
+                     © 2025 MMZR Family Office. Todos os direitos reservados.
+                 </p>
                         </td>
                     </tr>
                 </table>
-            </td>
-        </tr>
-    </table>
+             </td>
+         </tr>
+     </table>
 </body>
 </html>"""
         
@@ -310,7 +310,7 @@ class MMZREmailGenerator:
                 <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 20px 0; border-collapse: collapse; background-color: #ffffff; border: 1px solid #e0e0e0; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
                     <!-- Header da carteira -->
                     <tr>
-                        <td style="background-color: #0D2035; color: #ffffff; padding: 8px;">
+                        <td style="background-color: #0D2035; color: #ffffff; padding: 6px 8px;">
                             <h3 style="margin: 0; font-size: 16px; color: #ffffff; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">{name}</h3>
                             <span style="font-size: 14px; color: #ffffff; font-family: Arial, Helvetica, sans-serif; opacity: 0.9;">{portfolio_type}</span>
                         </td>
