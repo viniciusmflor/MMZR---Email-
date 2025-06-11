@@ -15,6 +15,7 @@ from typing import Dict, List, Optional, Any, Union
 import numpy as np
 import pandas as pd
 from datetime import date, datetime, timedelta
+import base64
 
 # Configuração de logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -30,6 +31,7 @@ class MMZREmailGenerator:
     
     Attributes:
         meses_pt (Dict[int, str]): Mapeamento de números dos meses para nomes em português
+        logo_base64 (str): Logo convertida em base64 para emails
     """
     
     def __init__(self) -> None:
@@ -39,7 +41,44 @@ class MMZREmailGenerator:
             5: 'Maio', 6: 'Junho', 7: 'Julho', 8: 'Agosto',
             9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'
         }
+        self.logo_base64 = self._load_logo_as_base64()
         logger.info("MMZREmailGenerator inicializado com sucesso")
+    
+    def _load_logo_as_base64(self) -> str:
+        """
+        Carrega a logo e converte para base64 para uso em emails.
+        
+        Returns:
+            str: Logo convertida em base64 ou string vazia se não encontrar
+        """
+        logo_paths = [
+            "documentos/img/logo-MMZR-azul.png",
+            "documentos/img/LogoAzul_MMZR.jpg"
+        ]
+        
+        for logo_path in logo_paths:
+            try:
+                if os.path.exists(logo_path):
+                    with open(logo_path, "rb") as image_file:
+                        base64_string = base64.b64encode(image_file.read()).decode('utf-8')
+                        
+                        # Determinar o tipo MIME baseado na extensão
+                        if logo_path.lower().endswith('.png'):
+                            mime_type = 'image/png'
+                        elif logo_path.lower().endswith('.jpg') or logo_path.lower().endswith('.jpeg'):
+                            mime_type = 'image/jpeg'
+                        else:
+                            mime_type = 'image/png'  # default
+                        
+                        logger.info(f"Logo carregada e convertida para base64: {logo_path}")
+                        return f"data:{mime_type};base64,{base64_string}"
+                        
+            except Exception as e:
+                logger.warning(f"Erro ao carregar logo {logo_path}: {e}")
+                continue
+        
+        logger.warning("Nenhuma logo encontrada. Emails serão gerados sem logo.")
+        return ""
     
     def load_excel_data(self, filepath: str) -> Optional[pd.ExcelFile]:
         """
@@ -472,7 +511,7 @@ class MMZREmailGenerator:
                                         <table role="presentation" style="width: 100%; border-collapse: collapse;">
                                             <tr>
                                                 <td style="text-align: center; vertical-align: middle; width: 120px;">
-                                                    <img src="documentos/img/logo-MMZR-azul.png" alt="MMZR Family Office" style="width: 120px; height: 100px; display: inline-block;">
+                                                    {f'<img src="{self.logo_base64}" alt="MMZR Family Office" style="width: 120px; height: 100px; display: inline-block;">' if self.logo_base64 else '<div style="width: 120px; height: 100px; display: inline-block; background-color: #ffffff; border: 2px solid #0D2035; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0D2035; font-weight: bold; font-size: 14px; text-align: center;">MMZR<br>Family<br>Office</div>'}
                                                 </td>
                                                 <td style="text-align: left; vertical-align: middle; padding-left: 10px;">
                                                     <p class="header-text" style="margin: 0; font-size: 21px; color: #ffffff; opacity: 0.9; line-height: 1.2;">MMZR Family Office</p>
