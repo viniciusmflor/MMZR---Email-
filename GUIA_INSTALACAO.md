@@ -62,6 +62,12 @@ python3 mmzr_integracao_real.py --cliente "Nome Cliente"
 pip install pywin32
 ```
 
+**Como funciona**:
+- Sistema **cria rascunho** no Outlook automaticamente
+- **Abre o email** para você revisar
+- Você pode **editar e enviar** manualmente
+- **Mais seguro** que envio automático
+
 ## Resolução de Problemas
 
 **Erro: "Planilha não encontrada"**

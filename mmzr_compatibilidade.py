@@ -340,7 +340,7 @@ class MMZRCompatibilidade:
     @staticmethod
     def _enviar_email_windows(destinatario: str, assunto: str, html_content: str, anexos: Optional[List[str]]) -> bool:
         """
-        Envia email usando Outlook no Windows.
+        Cria email como rascunho no Outlook (Windows) para o usuário revisar e enviar.
         
         Args:
             destinatario (str): Email do destinatário
@@ -349,12 +349,18 @@ class MMZRCompatibilidade:
             anexos (Optional[List[str]]): Lista de anexos
             
         Returns:
-            bool: True se enviado com sucesso
+            bool: True se o rascunho foi criado com sucesso
         """
         try:
             import win32com.client
+            
+            # Conectar ao Outlook
             outlook = win32com.client.Dispatch("Outlook.Application")
+            
+            # Criar novo item de email
             mail = outlook.CreateItem(0)  # 0 = olMailItem
+            
+            # Configurar o email
             mail.To = destinatario
             mail.Subject = assunto
             mail.HTMLBody = html_content
@@ -366,16 +372,26 @@ class MMZRCompatibilidade:
                         mail.Attachments.Add(anexo)
                         logger.info(f"Anexo adicionado: {anexo}")
             
-            mail.Send()
-            logger.info(f"Email enviado para {destinatario} via Outlook")
+            # Salvar como rascunho ao invés de enviar
+            mail.Save()
+            
+            # Mostrar o email para o usuário revisar (opcional)
+            mail.Display()
+            
+            logger.info(f"Email criado como rascunho no Outlook para {destinatario}")
+            logger.info("O usuário pode revisar e enviar manualmente")
             return True
             
         except ImportError:
-            logger.error("win32com não está instalado. A integração com Outlook não funcionará")
-            logger.info(f"Email seria enviado para {destinatario}")
+            logger.error("win32com não está instalado. Instale com: pip install pywin32")
+            logger.info(f"Email seria criado para {destinatario}")
             return False
         except Exception as e:
-            logger.error(f"Erro ao enviar email via Outlook: {e}")
+            logger.error(f"Erro ao criar email no Outlook: {e}")
+            logger.info("Possíveis soluções:")
+            logger.info("1. Verificar se o Outlook está instalado")
+            logger.info("2. Executar o script como administrador")
+            logger.info("3. Instalar pywin32: pip install pywin32")
             return False
     
     @staticmethod
