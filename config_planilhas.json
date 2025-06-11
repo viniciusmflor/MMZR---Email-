@@ -1,0 +1,24 @@
+{
+    "descricao": "Configuração das planilhas para o sistema MMZR",
+    "instrucoes": [
+        "Para usar suas próprias planilhas, edite os nomes abaixo:",
+        "1. planilha_base: arquivo com dados dos clientes e carteiras",
+        "2. planilha_rentabilidade: arquivo com dados de performance",
+        "3. Mantenha os arquivos na pasta documentos/dados/",
+        "4. Se deixar vazio, o sistema detectará automaticamente"
+    ],
+    "planilhas": {
+        "planilha_base": "",
+        "planilha_rentabilidade": "",
+        "abas_necessarias": {
+            "planilha_base": ["Base Clientes", "Base Consolidada"],
+            "planilha_rentabilidade": ["Sheet1"]
+        }
+    },
+    "auto_detectar": true,
+    "comentarios": {
+        "auto_detectar": "Se true, o sistema tentará encontrar automaticamente as planilhas Excel na pasta",
+        "planilha_base": "Nome do arquivo Excel com dados dos clientes (ex: 'minha_planilha.xlsx')",
+        "planilha_rentabilidade": "Nome do arquivo Excel com dados de rentabilidade"
+    }
+} 

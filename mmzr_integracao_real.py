@@ -164,13 +164,13 @@ def obter_dados_carteira(dados_cliente, dados_rentabilidade, generator):
         portfolio_data = {
             'name': nome_carteira,
             'type': estrategia,
+            'comentarios': comentarios_cliente,
             'data': {
                 'performance': performance_data,
                 'retorno_financeiro': dados_rentabilidade['Retorno Financeiro'] if pd.notna(dados_rentabilidade['Retorno Financeiro']) else 0,
                 'estrategias_destaque': estrategias if estrategias else ["Sem estratégias de destaque"],
                 'ativos_promotores': promotores if promotores else ["Sem ativos promotores"],
-                'ativos_detratores': detratores if detratores else ["Sem ativos detratores"],
-                'comentarios': comentarios_cliente
+                'ativos_detratores': detratores if detratores else ["Sem ativos detratores"]
             }
         }
         
