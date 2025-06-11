@@ -441,9 +441,22 @@ class MMZREmailGenerator:
     <!--[if mso]>
     <style type="text/css">
     body, table, td {{font-family: Arial, Helvetica, sans-serif !important;}}
+    img.logo {{width: 120px !important; height: 100px !important;}}
     </style>
     <![endif]-->
     <style>
+    /* Estilos específicos para a logo */
+    .mmzr-logo {{
+        width: 120px !important;
+        height: 100px !important;
+        max-width: 120px !important;
+        max-height: 100px !important;
+        display: inline-block !important;
+        object-fit: contain !important;
+        border: none !important;
+        outline: none !important;
+    }}
+    
     /* Estilos para forçar modo claro em dispositivos com tema escuro */
     :root {{
         color-scheme: light;
@@ -511,7 +524,7 @@ class MMZREmailGenerator:
                                         <table role="presentation" style="width: 100%; border-collapse: collapse;">
                                             <tr>
                                                 <td style="text-align: center; vertical-align: middle; width: 120px;">
-                                                    {f'<img src="{self.logo_base64}" alt="MMZR Family Office" style="width: 120px; height: 100px; display: inline-block;">' if self.logo_base64 else '<div style="width: 120px; height: 100px; display: inline-block; background-color: #ffffff; border: 2px solid #0D2035; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0D2035; font-weight: bold; font-size: 14px; text-align: center;">MMZR<br>Family<br>Office</div>'}
+                                                    {f'<img src="{self.logo_base64}" alt="MMZR Family Office" class="mmzr-logo logo" style="width: 120px !important; height: 100px !important; max-width: 120px !important; max-height: 100px !important; display: inline-block; object-fit: contain; border: none; outline: none;">' if self.logo_base64 else '<div style="width: 120px; height: 100px; display: inline-block; background-color: #ffffff; border: 2px solid #0D2035; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0D2035; font-weight: bold; font-size: 14px; text-align: center;">MMZR<br>Family<br>Office</div>'}
                                                 </td>
                                                 <td style="text-align: left; vertical-align: middle; padding-left: 10px;">
                                                     <p class="header-text" style="margin: 0; font-size: 21px; color: #ffffff; opacity: 0.9; line-height: 1.2;">MMZR Family Office</p>
