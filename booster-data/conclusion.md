@@ -30,3 +30,12 @@
 **What:** Implementei correções específicas para Outlook: adicionei atributos HTML diretos width="60" height="50" na tag img, CSS específico para Outlook usando [if mso], reduzi o tamanho da logo de 80px para 60px, e adicionei border="0" para evitar bordas no Outlook. Também mantive CSS responsivo para outros clientes de email.
 **Files:** `mmzr_email_generator.py`
 <!-- metadata:conclusion-1749672626755 -->
+
+
+---
+
+## 🐛 fix | high [ID:conclusion-1749672841253]
+**Why:** A logo continuava aparecendo muito grande no Outlook mesmo após as correções anteriores. O Outlook é extremamente teimoso com imagens em emails e ignora muitas propriedades CSS. Era necessária uma abordagem mais radical para forçar o tamanho.
+**What:** Implementei correção radical para Outlook: reduzi drasticamente o tamanho da logo para 64x32px (era 90x45px), criei estrutura de tabela aninhada com dimensões fixas de 70px para conter a logo, adicionei múltiplas camadas de controle de tamanho (tabela externa 70px + padding 3px + img 64px), e mantive atributos HTML diretos width/height na tag img.
+**Files:** `mmzr_email_generator.py`
+<!-- metadata:conclusion-1749672841253 -->
