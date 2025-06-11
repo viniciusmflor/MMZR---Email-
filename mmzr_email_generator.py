@@ -806,6 +806,31 @@ class MMZREmailGenerator:
 """
         return html
     
+    def generate_email_subject(self, data_ref: datetime) -> str:
+        """
+        Gera o assunto do email baseado na data de referência.
+        
+        Args:
+            data_ref (datetime): Data de referência para o relatório
+            
+        Returns:
+            str: Assunto formatado para o email
+        """
+        try:
+            mes_nome = self.meses_pt[data_ref.month]
+            ano = data_ref.year
+            
+            # Formato: "MMZR Family Office - Relatório de Performance - Junho/2025"
+            assunto = f"MMZR Family Office - Relatório de Performance - {mes_nome}/{ano}"
+            
+            logger.info(f"Assunto do email gerado: {assunto}")
+            return assunto
+            
+        except Exception as e:
+            logger.error(f"Erro ao gerar assunto do email: {e}")
+            # Fallback para assunto básico
+            return "MMZR Family Office - Relatório de Performance"
+    
     def save_email_to_file(self, html_content: str, client_name: str, output_path: Optional[str] = None) -> str:
         """
         Salva o conteúdo HTML do e-mail em um arquivo.
