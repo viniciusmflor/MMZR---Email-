@@ -39,3 +39,12 @@
 **What:** Implementei correção radical para Outlook: reduzi drasticamente o tamanho da logo para 64x32px (era 90x45px), criei estrutura de tabela aninhada com dimensões fixas de 70px para conter a logo, adicionei múltiplas camadas de controle de tamanho (tabela externa 70px + padding 3px + img 64px), e mantive atributos HTML diretos width/height na tag img.
 **Files:** `mmzr_email_generator.py`
 <!-- metadata:conclusion-1749672841253 -->
+
+
+---
+
+## ✨ ui | low [ID:conclusion-1749674066943]
+**Why:** O usuário relatou que a logo no header dos emails estava "um pouco esticada" e solicitou um aumento do tamanho para melhorar a proporção e a aparência visual.
+**What:** Aumentei as dimensões da logo de 64x32px para 100x50px, ajustei os containers correspondentes de 70px para 110px de largura, e atualizei o CSS responsivo para dispositivos móveis (75x38px em telas menores). Todas as alterações foram feitas no arquivo mmzr_email_generator.py, incluindo os estilos CSS inline e media queries.
+**Files:** `mmzr_email_generator.py`
+<!-- metadata:conclusion-1749674066943 -->

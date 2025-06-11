@@ -442,15 +442,15 @@ class MMZREmailGenerator:
     <style type="text/css">
     body, table, td {{font-family: Arial, Helvetica, sans-serif !important;}}
     .logo-img {{
-        width: 64px !important;
-        height: 32px !important;
-        max-width: 64px !important;
-        max-height: 32px !important;
+        width: 100px !important;
+        height: 50px !important;
+        max-width: 100px !important;
+        max-height: 50px !important;
     }}
     .logo-container {{
-        width: 70px !important;
-        min-width: 70px !important;
-        max-width: 70px !important;
+        width: 110px !important;
+        min-width: 110px !important;
+        max-width: 110px !important;
     }}
     </style>
     <![endif]-->
@@ -462,28 +462,28 @@ class MMZREmailGenerator:
     }}
     /* CSS responsivo para logo */
     .logo-container {{
-        width: 70px !important;
-        min-width: 70px !important;
-        max-width: 70px !important;
+        width: 110px !important;
+        min-width: 110px !important;
+        max-width: 110px !important;
     }}
     .logo-img {{
-        width: 64px !important;
-        height: 32px !important;
-        max-width: 64px !important;
-        max-height: 32px !important;
+        width: 100px !important;
+        height: 50px !important;
+        max-width: 100px !important;
+        max-height: 50px !important;
         display: block !important;
         object-fit: contain !important;
     }}
     @media only screen and (max-width: 600px) {{
         .logo-container {{
-            width: 60px !important;
-            min-width: 60px !important;
-            max-width: 60px !important;
+            width: 80px !important;
+            min-width: 80px !important;
+            max-width: 80px !important;
         }}
         .logo-img {{
-            width: 54px !important;
-            max-width: 54px !important;
-            max-height: 27px !important;
+            width: 75px !important;
+            max-width: 75px !important;
+            max-height: 38px !important;
         }}
         .header-text {{
             font-size: 18px !important;
@@ -552,11 +552,11 @@ class MMZREmailGenerator:
                                     <td style="padding: 10px;">
                                         <table role="presentation" style="width: 100%; border-collapse: collapse;">
                                             <tr>
-                                                <td style="width: 70px; max-width: 70px; min-width: 70px; vertical-align: middle;">
-                                                    <table role="presentation" style="width: 70px; max-width: 70px; border-collapse: collapse;">
+                                                <td style="width: 110px; max-width: 110px; min-width: 110px; vertical-align: middle;">
+                                                    <table role="presentation" style="width: 110px; max-width: 110px; border-collapse: collapse;">
                                                         <tr>
-                                                            <td style="width: 70px; max-width: 70px; text-align: left; padding: 3px;">
-                                                                {f'<img src="{self.logo_base64}" alt="MMZR Family Office" width="64" height="32" style="width: 64px !important; height: 32px !important; max-width: 64px !important; max-height: 32px !important; display: block !important; border: 0 !important;" border="0">' if self.logo_base64 else '<div style="width: 64px; height: 32px; display: block; background-color: #ffffff; border: 1px solid #ffffff; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #0D2035; font-weight: bold; font-size: 8px; text-align: center;">MMZR<br>Family<br>Office</div>'}
+                                                            <td style="width: 110px; max-width: 110px; text-align: left; padding: 3px;">
+                                                                {f'<img src="{self.logo_base64}" alt="MMZR Family Office" width="100" height="50" style="width: 100px !important; height: 50px !important; max-width: 100px !important; max-height: 50px !important; display: block !important; border: 0 !important;" border="0">' if self.logo_base64 else '<div style="width: 100px; height: 50px; display: block; background-color: #ffffff; border: 1px solid #ffffff; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #0D2035; font-weight: bold; font-size: 12px; text-align: center;">MMZR<br>Family<br>Office</div>'}
                                                             </td>
                                                         </tr>
                                                     </table>
