@@ -309,11 +309,11 @@ class MMZRCompatibilidade:
         try:
             # Validar parâmetros de entrada
             if not destinatario or not assunto or not caminho_html:
-                logger.error("Parâmetros obrigatórios não fornecidos para envio de email")
+                logger.error("❌ Parâmetros obrigatórios não fornecidos para envio de email")
                 return False
                 
             if not os.path.exists(caminho_html):
-                logger.error(f"Arquivo HTML não encontrado: {caminho_html}")
+                logger.error(f"❌ Arquivo HTML não encontrado: {caminho_html}")
                 return False
             
             # Ler o conteúdo HTML
@@ -322,19 +322,28 @@ class MMZRCompatibilidade:
             
             # Verificar o sistema operacional
             sistema = platform.system()
-            logger.info(f"Enviando email no sistema: {sistema}")
+            logger.info(f"🖥️ Sistema detectado: {sistema}")
             
             if sistema == "Windows":
-                return MMZRCompatibilidade._enviar_email_windows(
+                logger.info("📧 Tentando criar email no Outlook...")
+                result = MMZRCompatibilidade._enviar_email_windows(
                     destinatario, assunto, html_content, anexos
                 )
+                if result:
+                    logger.info("✅ Processo de criação de email concluído com sucesso!")
+                else:
+                    logger.error("❌ Falha na criação do email")
+                return result
             else:
+                logger.info("🍎 Sistema macOS/Linux detectado - usando simulação")
                 return MMZRCompatibilidade._simular_envio_email(
                     destinatario, assunto, caminho_html
                 )
                 
         except Exception as e:
-            logger.error(f"Erro ao enviar email: {e}")
+            logger.error(f"❌ Erro crítico ao processar email: {e}")
+            import traceback
+            logger.debug(traceback.format_exc())
             return False
     
     @staticmethod
@@ -354,6 +363,8 @@ class MMZRCompatibilidade:
         try:
             import win32com.client
             
+            logger.info(f"Criando email no Outlook para {destinatario}...")
+            
             # Conectar ao Outlook
             outlook = win32com.client.Dispatch("Outlook.Application")
             
@@ -372,26 +383,24 @@ class MMZRCompatibilidade:
                         mail.Attachments.Add(anexo)
                         logger.info(f"Anexo adicionado: {anexo}")
             
-            # Salvar como rascunho ao invés de enviar
+            # Salvar como rascunho
             mail.Save()
             
-            # Mostrar o email para o usuário revisar (opcional)
-            mail.Display()
-            
-            logger.info(f"Email criado como rascunho no Outlook para {destinatario}")
-            logger.info("O usuário pode revisar e enviar manualmente")
+            logger.info(f"✅ Email salvo como rascunho no Outlook para {destinatario}")
+            logger.info("📧 Verifique sua pasta de Rascunhos no Outlook para revisar e enviar")
             return True
             
         except ImportError:
-            logger.error("win32com não está instalado. Instale com: pip install pywin32")
-            logger.info(f"Email seria criado para {destinatario}")
+            logger.error("❌ win32com não está instalado. Instale com: pip install pywin32")
+            logger.info(f"📧 Email seria criado para {destinatario}")
             return False
         except Exception as e:
-            logger.error(f"Erro ao criar email no Outlook: {e}")
-            logger.info("Possíveis soluções:")
-            logger.info("1. Verificar se o Outlook está instalado")
-            logger.info("2. Executar o script como administrador")
-            logger.info("3. Instalar pywin32: pip install pywin32")
+            logger.error(f"❌ Erro ao criar email no Outlook: {e}")
+            logger.info("💡 Possíveis soluções:")
+            logger.info("  1. Verificar se o Outlook está instalado e configurado")
+            logger.info("  2. Executar o script como administrador")
+            logger.info("  3. Instalar pywin32: pip install pywin32")
+            logger.info("  4. Certificar que o Outlook não está bloqueado por política de segurança")
             return False
     
     @staticmethod
@@ -407,9 +416,12 @@ class MMZRCompatibilidade:
         Returns:
             bool: Sempre True (simulação)
         """
-        logger.info(f"[SIMULAÇÃO] Email enviado para {destinatario}")
-        logger.info(f"  Assunto: {assunto}")
-        logger.info(f"  Arquivo HTML: {caminho_html}")
+        logger.info("📧 [SIMULAÇÃO] Processo de criação de email iniciado")
+        logger.info(f"👤 Destinatário: {destinatario}")
+        logger.info(f"📋 Assunto: {assunto}")
+        logger.info(f"📄 Arquivo HTML: {os.path.basename(caminho_html)}")
+        logger.info("✅ Email simulado criado com sucesso!")
+        logger.info("💡 Nota: No Windows, este processo criaria um rascunho no Outlook")
         return True
     
     @staticmethod
