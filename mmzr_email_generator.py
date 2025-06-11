@@ -441,26 +441,45 @@ class MMZREmailGenerator:
     <!--[if mso]>
     <style type="text/css">
     body, table, td {{font-family: Arial, Helvetica, sans-serif !important;}}
-    img.logo {{width: 120px !important; height: 100px !important;}}
     </style>
     <![endif]-->
     <style>
-    /* Estilos específicos para a logo */
-    .mmzr-logo {{
-        width: 120px !important;
-        height: 100px !important;
-        max-width: 120px !important;
-        max-height: 100px !important;
-        display: inline-block !important;
-        object-fit: contain !important;
-        border: none !important;
-        outline: none !important;
-    }}
-    
     /* Estilos para forçar modo claro em dispositivos com tema escuro */
     :root {{
         color-scheme: light;
         supported-color-schemes: light;
+    }}
+    /* CSS responsivo para logo */
+    .logo-container {{
+        width: 80px !important;
+        min-width: 80px !important;
+        max-width: 80px !important;
+    }}
+    .logo-img {{
+        width: 80px !important;
+        height: auto !important;
+        max-width: 80px !important;
+        max-height: 60px !important;
+        display: block !important;
+        object-fit: contain !important;
+    }}
+    @media only screen and (max-width: 600px) {{
+        .logo-container {{
+            width: 60px !important;
+            min-width: 60px !important;
+            max-width: 60px !important;
+        }}
+        .logo-img {{
+            width: 60px !important;
+            max-width: 60px !important;
+            max-height: 45px !important;
+        }}
+        .header-text {{
+            font-size: 18px !important;
+        }}
+        .header-subtext {{
+            font-size: 12px !important;
+        }}
     }}
     @media (prefers-color-scheme: dark) {{
         body,
@@ -523,12 +542,12 @@ class MMZREmailGenerator:
                                     <td style="padding: 10px;">
                                         <table role="presentation" style="width: 100%; border-collapse: collapse;">
                                             <tr>
-                                                <td style="text-align: center; vertical-align: middle; width: 120px;">
-                                                    {f'<img src="{self.logo_base64}" alt="MMZR Family Office" class="mmzr-logo logo" style="width: 120px !important; height: 100px !important; max-width: 120px !important; max-height: 100px !important; display: inline-block; object-fit: contain; border: none; outline: none;">' if self.logo_base64 else '<div style="width: 120px; height: 100px; display: inline-block; background-color: #ffffff; border: 2px solid #0D2035; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0D2035; font-weight: bold; font-size: 14px; text-align: center;">MMZR<br>Family<br>Office</div>'}
+                                                <td class="logo-container" style="text-align: left; vertical-align: middle; width: 80px; min-width: 80px; max-width: 80px;">
+                                                    {f'<img src="{self.logo_base64}" alt="MMZR Family Office" class="logo-img" style="width: 80px; height: auto; max-width: 80px; max-height: 60px; display: block; object-fit: contain;">' if self.logo_base64 else '<div style="width: 80px; height: 60px; display: block; background-color: #ffffff; border: 1px solid #ffffff; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #0D2035; font-weight: bold; font-size: 10px; text-align: center;">MMZR<br>Family<br>Office</div>'}
                                                 </td>
-                                                <td style="text-align: left; vertical-align: middle; padding-left: 10px;">
+                                                <td style="text-align: left; vertical-align: middle; padding-left: 15px;">
                                                     <p class="header-text" style="margin: 0; font-size: 21px; color: #ffffff; opacity: 0.9; line-height: 1.2;">MMZR Family Office</p>
-                                                    <p class="header-text" style="margin: 0; font-size: 14px; color: #ffffff; opacity: 0.9; line-height: 1.2;">Relatório Mensal de Performance - {mes} de {ano}</p>
+                                                    <p class="header-text header-subtext" style="margin: 0; font-size: 14px; color: #ffffff; opacity: 0.9; line-height: 1.2;">Relatório Mensal de Performance - {mes} de {ano}</p>
                                                 </td>
                                             </tr>
                                         </table>

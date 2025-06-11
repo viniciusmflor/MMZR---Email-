@@ -104,7 +104,7 @@ def gerar_relatorio_integrado(planilha_base=None, planilha_rentabilidade=None, n
                     )
                     
                     if enviado:
-                        print(f"Email enviado para {email_cliente}")
+                        print(f"Email criado para {email_cliente}")
         
     except Exception as e:
         print(f"ERRO: {str(e)}")
@@ -278,7 +278,7 @@ if __name__ == "__main__":
     if clientes:
         try:
             nome_ou_email = input("\nDigite o nome ou email do cliente (ou Enter para todos): ")
-            enviar = input("Enviar por email? (s/N): ").lower() == 's'
+            enviar = input("Criar e-mail? (s/N): ").lower() == 's'
             
             if nome_ou_email.strip():
                 gerar_relatorio_integrado(nome_ou_email_cliente=nome_ou_email, enviar_email=enviar)

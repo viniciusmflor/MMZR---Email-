@@ -91,12 +91,6 @@ Use os nomes originais (mantém compatibilidade):
 - Ativos promotores e detratores
 - Compatibilidade total macOS/Windows
 
-### Envio de Email (Windows)
-- **Cria rascunho no Outlook** para revisão manual
-- **Abre automaticamente** para o usuário verificar
-- **Seguro**: não envia automaticamente
-- **Prático**: usuário pode editar antes de enviar
-
 ## Estrutura do Projeto
 
 ```

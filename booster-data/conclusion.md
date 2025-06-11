@@ -12,3 +12,12 @@
 **What:** Simplifiquei drasticamente a função _enviar_email_windows removendo: 1) Todas as importações de threading e time, 2) A função show_mail() e threading, 3) O timeout e join(), 4) Toda a lógica de .Display(). Mantive apenas: .Save() para salvar o rascunho e logs informativos. O código agora é muito mais simples, confiável e sem risco de travamento.
 **Files:** `mmzr_compatibilidade.py`
 <!-- metadata:conclusion-1749667302973 -->
+
+
+---
+
+## 🐛 fix | medium [ID:conclusion-1749672321101]
+**Why:** Após implementar a conversão base64 da logo, ela ficou muito grande (ocupando quase toda a largura do email) e quebrou a responsividade em dispositivos móveis. O problema era que a logo original tinha dimensões maiores do que o esperado, e o CSS não estava restringindo adequadamente o tamanho.
+**What:** Corrigido o tamanho da logo reduzindo de 120px para 80px e adicionado CSS responsivo específico. Implementei classes CSS .logo-container e .logo-img com tamanhos fixos e media queries para dispositivos móveis (60px em telas menores que 600px). Também ajustei a altura para auto com max-height de 60px e object-fit: contain para manter proporções. A logo agora mantém compatibilidade com Outlook via base64 e responsividade adequada.
+**Files:** `mmzr_email_generator.py`
+<!-- metadata:conclusion-1749672321101 -->
