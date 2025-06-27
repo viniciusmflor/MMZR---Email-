@@ -255,7 +255,7 @@ class MMZREmailGenerator:
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light">
     <style>
-    .mmzr-logo {{ width: 120px !important; height: 100px !important; max-width: 120px !important; max-height: 100px !important; display: inline-block !important; object-fit: contain !important; border: none !important; outline: none !important; }}
+    .mmzr-logo {{ width: 90px !important; height: 75px !important; max-width: 90px !important; max-height: 75px !important; display: inline-block !important; object-fit: contain !important; border: none !important; outline: none !important; }}
     :root {{ color-scheme: light; supported-color-schemes: light; }}
     @media (prefers-color-scheme: dark) {{
         body, .body-wrapper {{ background-color: #f4f4f4 !important; }}
@@ -283,15 +283,15 @@ class MMZREmailGenerator:
                         <td style="padding: 0;">
                             <table role="presentation" class="header-bg" style="width: 100%; border-collapse: collapse; background: #0D2035;">
                                 <tr>
-                                    <td style="padding: 10px;">
+                                    <td style="padding: 4px;">
                                         <table role="presentation" style="width: 100%; border-collapse: collapse;">
                                             <tr>
-                                                <td style="text-align: center; vertical-align: middle; width: 120px;">
-                                                    {f'<img src="{self.logo_base64}" alt="MMZR Family Office" class="mmzr-logo logo" style="width: 120px !important; height: 100px !important; max-width: 120px !important; max-height: 100px !important; display: inline-block; object-fit: contain; border: none; outline: none;">' if self.logo_base64 else '<div style="width: 120px; height: 100px; display: inline-block; background-color: #ffffff; border: 2px solid #0D2035; border-radius: 8px; color: #0D2035; font-weight: bold; font-size: 14px; text-align: center; line-height: 1.2; padding: 20px 0;">MMZR<br>Family<br>Office</div>'}
+                                                <td style="text-align: center; vertical-align: middle; width: 90px;">
+                                                    {f'<img src="{self.logo_base64}" alt="MMZR Family Office" class="mmzr-logo logo" style="width: 90px !important; height: 75px !important; max-width: 90px !important; max-height: 75px !important; display: inline-block; object-fit: contain; border: none; outline: none;">' if self.logo_base64 else '<div style="width: 90px; height: 75px; display: inline-block; background-color: #ffffff; border: 2px solid #0D2035; border-radius: 8px; color: #0D2035; font-weight: bold; font-size: 12px; text-align: center; line-height: 1.2; padding: 15px 0;">MMZR<br>Family<br>Office</div>'}
                                                 </td>
-                                                <td style="text-align: left; vertical-align: middle; padding-left: 10px;">
-                                                    <p class="header-text" style="margin: 0; font-size: 21px; color: #ffffff; opacity: 0.9; line-height: 1.2;">MMZR Family Office</p>
-                                                    <p class="header-text" style="margin: 0; font-size: 14px; color: #ffffff; opacity: 0.9; line-height: 1.2;">Relatório Mensal de Performance - {mes} de {ano}</p>
+                                                <td style="text-align: left; vertical-align: middle; padding-left: 8px;">
+                                                    <p class="header-text" style="margin: 0; font-size: 16px; color: #ffffff; opacity: 0.9; line-height: 1.2;">MMZR Family Office</p>
+                                                    <p class="header-text" style="margin: 0; font-size: 11px; color: #ffffff; opacity: 0.9; line-height: 1.2;">Relatório Mensal de Performance - {mes} de {ano}</p>
                                                 </td>
                                             </tr>
                                         </table>
@@ -305,9 +305,9 @@ class MMZREmailGenerator:
         """Gera o início do corpo do HTML."""
         return f"""
                     <tr>
-                        <td class="section-bg" style="padding: 20px 20px; background-color: #ffffff;">
-                            <h2 style="font-size: 15px; color: #0D2035; margin-bottom: 12px; margin-top: 0;">Olá {client_name},</h2>
-                            <p style="margin-top: 0; margin-bottom: 9px;">Segue o relatório mensal com o desempenho de suas carteiras referente a <strong>{data_ref.strftime('%d/%m/%Y')}</strong>.</p>"""
+                        <td class="section-bg" style="padding: 12px 16px; background-color: #ffffff;">
+                            <h2 style="font-size: 15px; color: #0D2035; margin-bottom: 8px; margin-top: 0;">Olá {client_name},</h2>
+                            <p style="margin-top: 0; margin-bottom: 6px;">Segue o relatório mensal com o desempenho de suas carteiras referente a <strong>{data_ref.strftime('%d/%m/%Y')}</strong>.</p>"""
     
     def _generate_portfolio_section(self, portfolio: Dict[str, Any]) -> str:
         """Gera a seção de uma carteira."""
@@ -316,14 +316,14 @@ class MMZREmailGenerator:
         data = portfolio.get('data', {})
         
         return f"""
-                            <table role="presentation" style="width: 100%; margin: 20px 0 0 0; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background-color: #ffffff;">
+                            <table role="presentation" style="width: 100%; margin: 12px 0 0 0; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background-color: #ffffff;">
                                 <tr>
-                                    <td class="header-bg portfolio-header" style="background-color: #0D2035; color: #ffffff; padding: 10px 15px;">
+                                    <td class="header-bg portfolio-header" style="background-color: #0D2035; color: #ffffff; padding: 6px 12px;">
                                         <h3 style="margin: 0; font-size: 16px; font-weight: 500;">{name} <span style="font-weight: 300; font-size: 13px; margin-left: 8px; opacity: 0.8;">| {portfolio_type}</span></h3>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="section-bg" style="padding: 15px; background-color: #ffffff;">
+                                    <td class="section-bg" style="padding: 10px; background-color: #ffffff;">
                                         {self._generate_performance_table(data.get('performance', []), data.get('retorno_financeiro', 0))}
                                         {self._generate_strategies_section(data.get('estrategias_destaque', []))}
                                         {self._generate_assets_section('Promotores', data.get('ativos_promotores', []), '#e8f5e9', '#2e7d32')}
@@ -350,8 +350,8 @@ class MMZREmailGenerator:
                 break
         
         html = """
-                                        <h4 class="performance-header" style="font-size: 18px; color: #0D2035; margin: 0 0 12px 0; font-weight: 500; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px;">Performance</h4>
-                                        <table role="presentation" class="data-table" style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 15px; background-color: #ffffff;">
+                                        <h4 class="performance-header" style="font-size: 16px; color: #0D2035; margin: 0 0 8px 0; font-weight: 500; border-bottom: 1px solid #e0e0e0; padding-bottom: 6px;">Performance</h4>
+                                        <table role="presentation" class="data-table" style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 10px; background-color: #ffffff;">
                                             <thead>
                                                 <tr>
                                                     <th class="table-header" style="background-color: #f8f9fa; color: #0D2035; font-weight: 600; padding: 8px 6px; text-align: left; border-bottom: 1px solid #dee2e6;">Período</th>
@@ -389,8 +389,8 @@ class MMZREmailGenerator:
     def _generate_strategies_section(self, strategies: List[str]) -> str:
         """Gera seção de estratégias."""
         html = """
-                                        <h4 class="performance-header" style="font-size: 18px; color: #0D2035; margin: 20px 0 12px 0; font-weight: 500; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px;">Estratégias de Destaque</h4>
-                                        <ul class="highlight-section" style="margin: 8px 0 15px 0; padding: 10px 10px 10px 30px; background-color: #f8f9fa; border-radius: 5px; color: #333333;">"""
+                                        <h4 class="performance-header" style="font-size: 16px; color: #0D2035; margin: 12px 0 8px 0; font-weight: 500; border-bottom: 1px solid #e0e0e0; padding-bottom: 6px;">Estratégias de Destaque</h4>
+                                        <ul class="highlight-section" style="margin: 6px 0 10px 0; padding: 8px 8px 8px 24px; background-color: #f8f9fa; border-radius: 5px; color: #333333;">"""
         
         for strategy in strategies:
             html += f"""
@@ -404,8 +404,8 @@ class MMZREmailGenerator:
         import re
         
         html = f"""
-                                        <h4 class="performance-header" style="font-size: 18px; color: #0D2035; margin: 20px 0 12px 0; font-weight: 500; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px;">Ativos {title}</h4>
-                                        <ul class="{title.lower()}-section" style="margin: 8px 0 15px 0; padding: 10px 10px 10px 30px; background-color: {bg_color}; border-radius: 5px; color: {text_color};">"""
+                                        <h4 class="performance-header" style="font-size: 16px; color: #0D2035; margin: 12px 0 8px 0; font-weight: 500; border-bottom: 1px solid #e0e0e0; padding-bottom: 6px;">Ativos {title}</h4>
+                                        <ul class="{title.lower()}-section" style="margin: 6px 0 10px 0; padding: 8px 8px 8px 24px; background-color: {bg_color}; border-radius: 5px; color: {text_color};">"""
         
         for asset in assets:
             # Adicionar "+" para promotores se necessário
@@ -432,9 +432,9 @@ class MMZREmailGenerator:
         outro_banker = bankers_info.get('outro_banker', 'Fernandito')
         
         html = f"""
-                            <table role="presentation" style="width: 100%; margin-top: 20px; border-collapse: collapse; background-color: #f8f9fa; border: 1px solid #e9ecef;">
+                            <table role="presentation" style="width: 100%; margin-top: 12px; border-collapse: collapse; background-color: #f8f9fa; border: 1px solid #e9ecef;">
                                 <tr>
-                                    <td style="padding: 15px;">
+                                    <td style="padding: 10px;">
                                         <p style="margin: 0 0 12px 0; color: #555555; font-size: 13px; line-height: 18px;">
                                             <strong>Obs.:</strong> Eventuais ajustes retroativos do IPCA, após a divulgação oficial do indicador, podem impactar marginalmente a rentabilidade do portfólio no mês anterior.
                                         </p>
@@ -456,9 +456,9 @@ class MMZREmailGenerator:
     def _generate_principais_indicadores_section(self) -> str:
         """Gera seção de principais indicadores."""
         return """
-                            <table role="presentation" style="width: 100%; margin-top: 15px; border-collapse: collapse; background-color: #f8f9fa; border: 1px solid #e9ecef;">
+                            <table role="presentation" style="width: 100%; margin-top: 8px; border-collapse: collapse; background-color: #f8f9fa; border: 1px solid #e9ecef;">
                                 <tr>
-                                    <td style="padding: 12px;">
+                                    <td style="padding: 8px;">
                                         <p style="margin: 0 0 8px 0; font-weight: bold; color: #333333; font-size: 13px; line-height: 16px;">Principais indicadores:</p>
                                         <p style="margin: 0; color: #555555; font-size: 11px; line-height: 15px;">
                                             Locais: CDI: +1,06%, Ibovespa: +3,69%, Prefixados (IRF-M): +2,99%, Ativos IPCA (IMA-B): +2,09%, Imobiliários (IFIX): +3,01%, Dólar (Ptax): -1,42%, Multimercados (IHFA): +3,85%<br>
@@ -472,12 +472,12 @@ class MMZREmailGenerator:
         """Gera seção da carta mensal."""
         carta_link = f"https://www.mmzrfo.com.br/post/carta-mensal-{mes.lower()}-{ano}"
         return f"""
-                            <table role="presentation" style="width: 100%; margin-top: 25px; border-collapse: collapse;">
+                            <table role="presentation" style="width: 100%; margin-top: 12px; border-collapse: collapse;">
                                 <tr>
                                     <td align="center" style="padding: 0;">
                                         <table role="presentation" style="border-collapse: collapse; background-color: #0D2035; border-radius: 4px;">
                                             <tr>
-                                                <td style="padding: 12px 24px; text-align: center;">
+                                                <td style="padding: 8px 16px; text-align: center;">
                                                     <a href="{carta_link}" target="_blank" style="color: #ffffff; text-decoration: none; font-weight: bold; font-size: 14px; line-height: 18px;">Confira nossa carta completa: Carta {mes} {ano}</a>
                                                 </td>
                                             </tr>
@@ -492,7 +492,7 @@ class MMZREmailGenerator:
                         </td>
                     </tr>
                     <tr>
-                        <td style="background-color: #f8f9fa; padding: 12px 20px; text-align: center;">
+                        <td style="background-color: #f8f9fa; padding: 8px 16px; text-align: center;">
                             <p style="margin: 0 0 3px 0; color: #666666; font-size: 11px;">MMZR Family Office | Gestão de Patrimônio</p>
                             <p style="margin: 0 0 3px 0; color: #666666; font-size: 11px;">Este é um email automático. Por favor, não responda.</p>
                             <p style="margin: 0; color: #666666; font-size: 11px;">© {ano} MMZR Family Office. Todos os direitos reservados.</p>
