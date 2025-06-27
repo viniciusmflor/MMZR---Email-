@@ -14,7 +14,7 @@ Guia rápido para configurar o sistema MMZR de relatórios financeiros.
 pip install -r requirements.txt
 ```
 
-### 2. Configurar planilhas (3 opções)
+### 2. Configurar planilhas (2 opções)
 
 **Opção A: Detecção Automática** ⭐ Recomendada
 ```
@@ -34,10 +34,6 @@ Editar `config_planilhas.json`:
     }
 }
 ```
-
-**Opção C: Nomes Padrão**
-- Planilha Inteli.xlsm
-- Planilha Inteli - dados de rentabilidade.xlsx
 
 ### 3. Testar sistema
 ```bash

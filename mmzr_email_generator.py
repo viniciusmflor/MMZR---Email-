@@ -1,21 +1,17 @@
 """
 MMZR Family Office - Gerador de Relatórios de Performance
-
-Este módulo implementa a classe MMZREmailGenerator responsável por processar dados
-financeiros de planilhas Excel e gerar relatórios HTML personalizados para clientes.
+Versão Final - Sistema de geração de relatórios HTML para clientes
 
 Autor: MMZR Family Office
-Versão: 2.0.0
-Data: 2025-01-11
+Versão: 3.0.0
 """
 
 import os
 import logging
-from typing import Dict, List, Optional, Any, Union
-import numpy as np
-import pandas as pd
-from datetime import date, datetime, timedelta
 import base64
+import pandas as pd
+from datetime import datetime
+from typing import Dict, List, Optional, Any, Union
 
 # Configuração de logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -25,488 +21,256 @@ logger = logging.getLogger(__name__)
 class MMZREmailGenerator:
     """
     Gerador de emails HTML para MMZR Family Office.
-    
-    Esta classe processa dados financeiros de planilhas Excel e gera relatórios
-    HTML personalizados com performance de carteiras, estratégias e ativos.
-    
-    Attributes:
-        meses_pt (Dict[int, str]): Mapeamento de números dos meses para nomes em português
-        logo_base64 (str): Logo convertida em base64 para emails
+    Versão final otimizada com funcionalidades essenciais.
     """
     
     def __init__(self) -> None:
-        """Inicializa o gerador de emails com configurações padrão."""
-        self.meses_pt: Dict[int, str] = {
+        """Inicializa o gerador com configurações essenciais."""
+        self.meses_pt = {
             1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril',
             5: 'Maio', 6: 'Junho', 7: 'Julho', 8: 'Agosto',
             9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'
         }
-        self.logo_base64 = self._load_logo_as_base64()
-        logger.info("MMZREmailGenerator inicializado com sucesso")
+        self.logo_base64 = self._load_logo()
+        logger.info("MMZREmailGenerator inicializado")
     
-    def _load_logo_as_base64(self) -> str:
-        """
-        Carrega a logo e converte para base64 para uso em emails.
-        
-        Returns:
-            str: Logo convertida em base64 ou string vazia se não encontrar
-        """
+    def _load_logo(self) -> str:
+        """Carrega e converte logo para base64."""
         logo_paths = [
             "documentos/img/logo-MMZR-azul.png",
             "documentos/img/LogoAzul_MMZR.jpg"
         ]
         
-        for logo_path in logo_paths:
-            try:
-                if os.path.exists(logo_path):
-                    with open(logo_path, "rb") as image_file:
-                        base64_string = base64.b64encode(image_file.read()).decode('utf-8')
-                        
-                        # Determinar o tipo MIME baseado na extensão
-                        if logo_path.lower().endswith('.png'):
-                            mime_type = 'image/png'
-                        elif logo_path.lower().endswith('.jpg') or logo_path.lower().endswith('.jpeg'):
-                            mime_type = 'image/jpeg'
-                        else:
-                            mime_type = 'image/png'  # default
-                        
-                        logger.info(f"Logo carregada e convertida para base64: {logo_path}")
+        for path in logo_paths:
+            if os.path.exists(path):
+                try:
+                    with open(path, "rb") as f:
+                        base64_string = base64.b64encode(f.read()).decode('utf-8')
+                        mime_type = 'image/png' if path.endswith('.png') else 'image/jpeg'
                         return f"data:{mime_type};base64,{base64_string}"
-                        
-            except Exception as e:
-                logger.warning(f"Erro ao carregar logo {logo_path}: {e}")
-                continue
+                except Exception as e:
+                    logger.warning(f"Erro ao carregar logo {path}: {e}")
         
-        logger.warning("Nenhuma logo encontrada. Emails serão gerados sem logo.")
+        logger.warning("Logo não encontrada")
         return ""
     
     def load_excel_data(self, filepath: str) -> Optional[pd.ExcelFile]:
-        """
-        Carrega dados de um arquivo Excel.
-        
-        Args:
-            filepath (str): Caminho para o arquivo Excel
-            
-        Returns:
-            Optional[pd.ExcelFile]: Objeto ExcelFile se bem-sucedido, None caso contrário
-            
-        Raises:
-            FileNotFoundError: Se o arquivo não for encontrado
-            ValueError: Se o arquivo não puder ser lido como Excel
-        """
+        """Carrega dados do arquivo Excel."""
         try:
             if not os.path.exists(filepath):
                 raise FileNotFoundError(f"Arquivo não encontrado: {filepath}")
-                
-            excel_file = pd.ExcelFile(filepath)
-            logger.info(f"Arquivo carregado: {filepath}")
-            logger.info(f"Abas disponíveis: {excel_file.sheet_names}")
-            
-            return excel_file
+            return pd.ExcelFile(filepath)
         except Exception as e:
-            logger.error(f"Erro ao carregar arquivo {filepath}: {e}")
+            logger.error(f"Erro ao carregar {filepath}: {e}")
             return None
     
-    def extract_performance_data(self, df: pd.DataFrame) -> List[Dict[str, Union[str, float]]]:
-        """
-        Extrai dados de performance do DataFrame (apenas Mês atual e No ano).
-        
-        Args:
-            df (pd.DataFrame): DataFrame contendo os dados financeiros
-            
-        Returns:
-            List[Dict[str, Union[str, float]]]: Lista com dados de performance
-            
-        Raises:
-            ValueError: Se não encontrar dados de performance na planilha
-        """
-        performance_data: List[Dict[str, Union[str, float]]] = []
+    def extract_banker_info(self, excel_path: str, client_banker: str = None) -> Dict[str, str]:
+        """Extrai informações dos bankers da planilha."""
+        default_bankers = {'banker_padrao': 'Felipe', 'outro_banker': 'Fernandito'}
         
         try:
-            # Procurar pela palavra "Performance" no DataFrame
-            for i in range(len(df)):
-                for j in range(len(df.columns)):
-                    cell_value = str(df.iloc[i, j])
-                    if 'Performance' in cell_value:
-                        # Encontrou a seção de performance
-                        start_row = i + 2
-                        
-                        # Extrair dados das próximas linhas
-                        for k in range(start_row, min(start_row + 5, len(df))):
-                            row = df.iloc[k]
-                            if pd.notna(row.iloc[0]):
-                                periodo = str(row.iloc[0]).lower()
-                                
-                                # Filtrar apenas "Mês atual" e "No ano"
-                                if "mês" in periodo or "mes" in periodo:
-                                    mes_atual = self.meses_pt[datetime.now().month]
-                                    periodo = f"{mes_atual}:"
-                                elif "ano" in periodo:
-                                    periodo = "No ano:"
-                                else:
-                                    continue
-                                    
-                                try:
-                                    carteira = float(row.iloc[1]) if pd.notna(row.iloc[1]) else 0.0
-                                    benchmark = float(row.iloc[2]) if pd.notna(row.iloc[2]) else 0.0
-                                    diferenca = float(row.iloc[3]) if pd.notna(row.iloc[3]) and len(row) > 3 else carteira - benchmark
-                                    
-                                    performance_data.append({
-                                        'periodo': periodo,
-                                        'carteira': carteira,
-                                        'benchmark': benchmark,
-                                        'diferenca': diferenca
-                                    })
-                                except (ValueError, TypeError) as e:
-                                    logger.warning(f"Erro ao converter valores numéricos: {e}")
-                                    continue
-                        
-                        if performance_data:
-                            logger.info(f"Extraídos {len(performance_data)} registros de performance")
-                            return performance_data
+            excel_file = pd.ExcelFile(excel_path)
+            if "Base Consolidada" not in excel_file.sheet_names:
+                return default_bankers
             
-            # Se não encontrou, lançar erro
-            error_msg = "Não foi possível encontrar dados de 'Performance' na planilha"
-            logger.error(error_msg)
-            raise ValueError(error_msg)
+            df = pd.read_excel(excel_file, sheet_name="Base Consolidada")
+            mapeamento = df[['Banker', 'NomePronomeBanker']].drop_duplicates()
+            
+            # Banker padrão (Felipe como fallback)
+            banker4 = mapeamento[mapeamento['Banker'] == 'Banker 4']
+            banker_padrao = 'Felipe' if banker4.empty or banker4.iloc[0]['NomePronomeBanker'] == 'Banker 4' else banker4.iloc[0]['NomePronomeBanker']
+            
+            # Outro banker (baseado no cliente ou Fernandito como padrão)
+            outro_banker = 'Fernandito'
+            if client_banker and client_banker != 'Banker 4':
+                client_info = mapeamento[mapeamento['Banker'] == client_banker]
+                if not client_info.empty and client_info.iloc[0]['NomePronomeBanker'] != client_banker:
+                    outro_banker = client_info.iloc[0]['NomePronomeBanker']
+            
+            result = {'banker_padrao': banker_padrao, 'outro_banker': outro_banker}
+            logger.info(f"Bankers: {banker_padrao} e {outro_banker}")
+            return result
             
         except Exception as e:
-            logger.error(f"Erro ao extrair dados de performance: {e}")
-            raise
+            logger.error(f"Erro ao extrair bankers: {e}")
+            return default_bankers
+    
+    def extract_performance_data(self, df: pd.DataFrame) -> List[Dict[str, Union[str, float]]]:
+        """Extrai dados de performance (Mês atual e No ano)."""
+        for i in range(len(df)):
+            for j in range(len(df.columns)):
+                if 'Performance' in str(df.iloc[i, j]):
+                    performance_data = []
+                    start_row = i + 2
+                    
+                    for k in range(start_row, min(start_row + 5, len(df))):
+                        row = df.iloc[k]
+                        if pd.notna(row.iloc[0]):
+                            periodo = str(row.iloc[0]).lower()
+                            
+                            if "mês" in periodo or "mes" in periodo:
+                                periodo = f"{self.meses_pt[datetime.now().month]}:"
+                            elif "ano" in periodo:
+                                periodo = "No ano:"
+                            else:
+                                continue
+                            
+                            try:
+                                performance_data.append({
+                                    'periodo': periodo,
+                                    'carteira': float(row.iloc[1]) if pd.notna(row.iloc[1]) else 0.0,
+                                    'benchmark': float(row.iloc[2]) if pd.notna(row.iloc[2]) else 0.0,
+                                    'diferenca': float(row.iloc[3]) if pd.notna(row.iloc[3]) and len(row) > 3 else 0.0
+                                })
+                            except (ValueError, TypeError):
+                                continue
+                    
+                    if performance_data:
+                        return performance_data
+        
+        raise ValueError("Dados de performance não encontrados")
     
     def extract_financial_return(self, df: pd.DataFrame) -> float:
-        """
-        Extrai dados de retorno financeiro do DataFrame.
+        """Extrai retorno financeiro."""
+        for i in range(len(df)):
+            for j in range(len(df.columns)):
+                cell = str(df.iloc[i, j]) if pd.notna(df.iloc[i, j]) else ""
+                if 'Retorno Financeiro' in cell or ('Retorno' in cell and 'Período' not in cell):
+                    for di, dj in [(1, 0), (0, 1)]:
+                        ni, nj = i + di, j + dj
+                        if ni < len(df) and nj < len(df.columns) and pd.notna(df.iloc[ni, nj]):
+                            try:
+                                return float(df.iloc[ni, nj])
+                            except (ValueError, TypeError):
+                                continue
         
-        Args:
-            df (pd.DataFrame): DataFrame contendo os dados financeiros
-            
-        Returns:
-            float: Valor do retorno financeiro
-            
-        Raises:
-            ValueError: Se não encontrar dados de retorno financeiro
-        """
-        try:
-            # Procurar pelo termo "Retorno Financeiro"
-            for i in range(len(df)):
-                for j in range(len(df.columns)):
-                    cell_value = str(df.iloc[i, j]) if pd.notna(df.iloc[i, j]) else ""
-                    if ('Retorno Financeiro' in cell_value or 'Retorno' in cell_value) and 'Período' not in cell_value:
-                        # Verificar células adjacentes
-                        for di, dj in [(1, 0), (0, 1)]:  # Abaixo e à direita
-                            ni, nj = i + di, j + dj
-                            if ni < len(df) and nj < len(df.columns) and pd.notna(df.iloc[ni, nj]):
-                                try:
-                                    financial_return = float(df.iloc[ni, nj])
-                                    logger.info(f"Retorno financeiro extraído: {financial_return}")
-                                    return financial_return
-                                except (ValueError, TypeError):
-                                    continue
-            
-            error_msg = "Não foi possível encontrar 'Retorno Financeiro' na planilha"
-            logger.error(error_msg)
-            raise ValueError(error_msg)
-            
-        except Exception as e:
-            logger.error(f"Erro ao extrair retorno financeiro: {e}")
-            raise
+        raise ValueError("Retorno financeiro não encontrado")
     
     def extract_highlight_strategies(self, df: pd.DataFrame) -> List[str]:
-        """
-        Extrai estratégias de destaque (máximo 2).
+        """Extrai estratégias de destaque (máximo 2)."""
+        for i in range(len(df)):
+            for j in range(len(df.columns)):
+                cell = str(df.iloc[i, j]) if pd.notna(df.iloc[i, j]) else ""
+                if 'Estratégias de Destaque' in cell or 'Destaques' in cell:
+                    strategies = []
+                    start_row = i + 1
+                    
+                    for k in range(start_row, min(start_row + 5, len(df))):
+                        if len(strategies) >= 2:
+                            break
+                        row = df.iloc[k]
+                        for l in range(min(len(row), 3)):
+                            if pd.notna(row.iloc[l]) and str(row.iloc[l]).strip():
+                                strategy = str(row.iloc[l])
+                                if not any(s.lower() in strategy.lower() for s in ['estratégia', 'destaque', 'promotor', 'detrator']):
+                                    strategies.append(strategy)
+                                    break
+                    
+                    return strategies[:2] if strategies else ["Sem estratégias de destaque"]
         
-        Args:
-            df (pd.DataFrame): DataFrame contendo os dados financeiros
-            
-        Returns:
-            List[str]: Lista com estratégias de destaque (máximo 2)
-            
-        Raises:
-            ValueError: Se não encontrar estratégias de destaque
-        """
-        strategies: List[str] = []
-        
-        try:
-            # Procurar por "Estratégias de Destaque" ou similar
-            for i in range(len(df)):
-                for j in range(len(df.columns)):
-                    if i < len(df) and j < len(df.columns):
-                        cell_value = str(df.iloc[i, j]) if pd.notna(df.iloc[i, j]) else ""
-                        if 'Estratégias de Destaque' in cell_value or 'Destaques' in cell_value:
-                            # Extrair estratégias das linhas seguintes
-                            start_row = i + 1
-                            
-                            for k in range(start_row, min(start_row + 5, len(df))):
-                                if k < len(df) and len(strategies) < 2:  # Limitar a 2 estratégias
-                                    row = df.iloc[k]
-                                    for l in range(min(len(row), 3)):  # Limitar a 3 colunas para evitar dados não relacionados
-                                        if pd.notna(row.iloc[l]) and str(row.iloc[l]).strip() != '' and len(strategies) < 2:
-                                            strategy = str(row.iloc[l])
-                                            if not any(s.lower() in strategy.lower() for s in ['estratégia', 'destaque', 'promotor', 'detrator']):
-                                                strategies.append(strategy)
-                                                if len(strategies) >= 2:  # Parar ao atingir 2 estratégias
-                                                    break
-                            
-                            if strategies:
-                                logger.info(f"Extraídas {len(strategies)} estratégias de destaque")
-                                return strategies[:2]  # Garantir máximo 2 estratégias
-            
-            # Se não encontrou, lançar erro
-            error_msg = "Não foi possível encontrar 'Estratégias de Destaque' na planilha"
-            logger.error(error_msg)
-            raise ValueError(error_msg)
-            
-        except Exception as e:
-            logger.error(f"Erro ao extrair estratégias de destaque: {e}")
-            raise
+        raise ValueError("Estratégias de destaque não encontradas")
     
-    def extract_promoter_assets(self, df: pd.DataFrame) -> List[str]:
-        """
-        Extrai ativos promotores (apenas os positivos, máximo 2).
+    def extract_assets(self, df: pd.DataFrame, asset_type: str) -> List[str]:
+        """Extrai ativos promotores ou detratores."""
+        import re
+        search_terms = {'promotor': 'Ativos Promotores', 'detrator': 'Ativos Detratores'}
+        target_sign = 1 if asset_type == 'promotor' else -1
         
-        Args:
-            df (pd.DataFrame): DataFrame contendo os dados financeiros
-            
-        Returns:
-            List[str]: Lista com ativos promotores (máximo 2)
-            
-        Raises:
-            ValueError: Se não encontrar ativos promotores
-        """
-        assets: List[str] = []
+        for i in range(len(df)):
+            for j in range(len(df.columns)):
+                cell = str(df.iloc[i, j]) if pd.notna(df.iloc[i, j]) else ""
+                if search_terms[asset_type] in cell or asset_type.title() + 'es' in cell:
+                    assets = []
+                    start_row = i + 1
+                    
+                    for k in range(start_row, min(start_row + 10, len(df))):
+                        if len(assets) >= 2:
+                            break
+                        row = df.iloc[k]
+                        for l in range(min(len(row), 5)):
+                            if pd.notna(row.iloc[l]) and str(row.iloc[l]).strip():
+                                asset = str(row.iloc[l])
+                                if not any(s.lower() in asset.lower() for s in ['ativo', 'promotor', 'detrator', 'estratégia']):
+                                    percentage_match = re.search(r'\(([-+]?\d+[.,]?\d*)%\)', asset)
+                                    if percentage_match:
+                                        try:
+                                            percentage = float(percentage_match.group(1).replace(',', '.'))
+                                            if (target_sign > 0 and percentage > 0) or (target_sign < 0 and percentage < 0):
+                                                if asset_type == 'promotor' and not asset.startswith('(+'):
+                                                    asset = asset.replace(f"({percentage_str}%)", f"(+{percentage_str}%)")
+                                                assets.append(asset)
+                                                break
+                                        except ValueError:
+                                            continue
+                    
+                    return assets[:2] if assets else [f"Sem ativos {asset_type}es"]
         
-        try:
-            # Procurar por "Ativos Promotores" ou similar
-            for i in range(len(df)):
-                for j in range(len(df.columns)):
-                    if i < len(df) and j < len(df.columns):
-                        cell_value = str(df.iloc[i, j]) if pd.notna(df.iloc[i, j]) else ""
-                        if 'Ativos Promotores' in cell_value or 'Promotores' in cell_value:
-                            # Extrair ativos das linhas seguintes
-                            start_row = i + 1
-                            
-                            for k in range(start_row, min(start_row + 10, len(df))):
-                                if k < len(df) and len(assets) < 2:  # Limitar a 2 ativos
-                                    row = df.iloc[k]
-                                    for l in range(min(len(row), 5)):  # Verificar até 5 colunas
-                                        if pd.notna(row.iloc[l]) and str(row.iloc[l]).strip() != '':
-                                            asset = str(row.iloc[l])
-                                            # Verificar se não contém palavras-chave
-                                            if not any(s.lower() in asset.lower() for s in ['ativo', 'promotor', 'detrator', 'estratégia']):
-                                                # Verificar se o ativo tem porcentagem positiva
-                                                import re
-                                                percentage_match = re.search(r'\(([-+]?\d+[.,]?\d*)%\)', asset)
-                                                if percentage_match:
-                                                    percentage_str = percentage_match.group(1).replace(',', '.')
-                                                    try:
-                                                        percentage = float(percentage_str)
-                                                        if percentage > 0:  # Somente incluir se for positivo
-                                                            assets.append(asset)
-                                                            if len(assets) >= 2:  # Limitar a 2 ativos
-                                                                break
-                                                    except ValueError:
-                                                        continue
-                            
-                            if assets:
-                                logger.info(f"Extraídos {len(assets)} ativos promotores")
-                                return assets[:2]  # Garantir máximo de 2 ativos
-            
-            # Se não encontrou, lançar erro
-            error_msg = "Não foi possível encontrar 'Ativos Promotores' na planilha ou nenhum ativo com rendimento positivo foi encontrado"
-            logger.error(error_msg)
-            raise ValueError(error_msg)
-            
-        except Exception as e:
-            logger.error(f"Erro ao extrair ativos promotores: {e}")
-            raise
-    
-    def extract_detractor_assets(self, df: pd.DataFrame) -> List[str]:
-        """
-        Extrai ativos detratores (apenas os negativos, máximo 2).
-        
-        Args:
-            df (pd.DataFrame): DataFrame contendo os dados financeiros
-            
-        Returns:
-            List[str]: Lista com ativos detratores (máximo 2)
-            
-        Raises:
-            ValueError: Se não encontrar ativos detratores
-        """
-        assets: List[str] = []
-        
-        try:
-            # Procurar por "Ativos Detratores" ou similar
-            for i in range(len(df)):
-                for j in range(len(df.columns)):
-                    if i < len(df) and j < len(df.columns):
-                        cell_value = str(df.iloc[i, j]) if pd.notna(df.iloc[i, j]) else ""
-                        if 'Ativos Detratores' in cell_value or 'Detratores' in cell_value:
-                            # Extrair ativos das linhas seguintes
-                            start_row = i + 1
-                            
-                            for k in range(start_row, min(start_row + 10, len(df))):
-                                if k < len(df) and len(assets) < 2:  # Limitar a 2 ativos
-                                    row = df.iloc[k]
-                                    for l in range(min(len(row), 5)):  # Verificar até 5 colunas
-                                        if pd.notna(row.iloc[l]) and str(row.iloc[l]).strip() != '':
-                                            asset = str(row.iloc[l])
-                                            # Verificar se não contém palavras-chave
-                                            if not any(s.lower() in asset.lower() for s in ['ativo', 'detrator', 'promotor', 'estratégia']):
-                                                # Verificar se o ativo tem porcentagem negativa
-                                                import re
-                                                percentage_match = re.search(r'\(([-+]?\d+[.,]?\d*)%\)', asset)
-                                                if percentage_match:
-                                                    percentage_str = percentage_match.group(1).replace(',', '.')
-                                                    try:
-                                                        percentage = float(percentage_str)
-                                                        if percentage < 0:  # Somente incluir se for negativo
-                                                            assets.append(asset)
-                                                            if len(assets) >= 2:  # Limitar a 2 ativos
-                                                                break
-                                                    except ValueError:
-                                                        continue
-                            
-                            if assets:
-                                logger.info(f"Extraídos {len(assets)} ativos detratores")
-                                return assets[:2]  # Garantir máximo de 2 ativos
-            
-            # Se não encontrou, lançar erro
-            error_msg = "Não foi possível encontrar 'Ativos Detratores' na planilha ou nenhum ativo com rendimento negativo foi encontrado"
-            logger.error(error_msg)
-            raise ValueError(error_msg)
-            
-        except Exception as e:
-            logger.error(f"Erro ao extrair ativos detratores: {e}")
-            raise
+        raise ValueError(f"Ativos {asset_type}es não encontrados")
     
     def format_currency(self, value: float) -> str:
-        """
-        Formata valor como moeda brasileira.
-        
-        Args:
-            value (float): Valor a ser formatado
-            
-        Returns:
-            str: Valor formatado como moeda brasileira
-        """
+        """Formata valor como moeda brasileira."""
         if value >= 0:
             return f"R$ {value:,.2f}".replace(",", ".")
-        else:
-            return f"-R$ {abs(value):,.2f}".replace(",", ".")
+        return f"-R$ {abs(value):,.2f}".replace(",", ".")
     
     def format_percentage(self, value: float) -> str:
-        """
-        Formata valor como percentual.
-        
-        Args:
-            value (float): Valor a ser formatado
-            
-        Returns:
-            str: Valor formatado como percentual
-        """
-        if value > 0:
-            return f"+{value:.2f}%"
-        else:
-            return f"{value:.2f}%"
+        """Formata valor como percentual."""
+        return f"+{value:.2f}%" if value > 0 else f"{value:.2f}%"
     
-    def generate_html_email(self, client_name: str, data_ref: datetime, portfolios_data: List[Dict[str, Any]]) -> str:
-        """
-        Gera o HTML completo do email.
+    def generate_html_email(self, client_name: str, data_ref: datetime, portfolios_data: List[Dict[str, Any]], bankers_info: Dict[str, str] = None) -> str:
+        """Gera o HTML completo do email."""
+        mes = self.meses_pt[data_ref.month]
+        ano = data_ref.year
         
-        Args:
-            client_name (str): Nome do cliente
-            data_ref (datetime): Data de referência do relatório
-            portfolios_data (List[Dict[str, Any]]): Dados das carteiras do cliente
-            
-        Returns:
-            str: HTML completo do email
-        """
-        try:
-            # Configurar mês/ano
-            mes = self.meses_pt[data_ref.month]
-            ano = data_ref.year
-            
-            logger.info(f"Gerando HTML para {client_name} - {mes}/{ano}")
-            
-            # HTML Header
-            html = f"""<!DOCTYPE html>
+        if not bankers_info:
+            bankers_info = {'banker_padrao': 'Felipe', 'outro_banker': 'Fernandito'}
+        
+        # Coletar comentários
+        comentarios = []
+        for p in portfolios_data:
+            comentario = p.get('comentarios', '')
+            if comentario and str(comentario).strip():
+                comentarios.append(str(comentario).strip())
+        comentario_final = ' | '.join(comentarios) if comentarios else ""
+        
+        html = self._generate_html_header(mes, ano)
+        html += self._generate_html_body_start(client_name, data_ref)
+        
+        for portfolio in portfolios_data:
+            html += self._generate_portfolio_section(portfolio)
+        
+        html += self._generate_observacoes_section(comentario_final, bankers_info)
+        html += self._generate_principais_indicadores_section()
+        html += self._generate_carta_section(mes, ano)
+        html += self._generate_html_footer(ano)
+        
+        return html
+    
+    def _generate_html_header(self, mes: str, ano: int) -> str:
+        """Gera o cabeçalho HTML."""
+        return f"""<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light">
-    <meta name="supported-color-schemes" content="light">
-    <!--[if mso]>
-    <style type="text/css">
-    body, table, td {{font-family: Arial, Helvetica, sans-serif !important;}}
-    img.logo {{width: 120px !important; height: 100px !important;}}
-    </style>
-    <![endif]-->
     <style>
-    /* Estilos específicos para a logo */
-    .mmzr-logo {{
-        width: 120px !important;
-        height: 100px !important;
-        max-width: 120px !important;
-        max-height: 100px !important;
-        display: inline-block !important;
-        object-fit: contain !important;
-        border: none !important;
-        outline: none !important;
-    }}
-    
-    /* Estilos para forçar modo claro em dispositivos com tema escuro */
-    :root {{
-        color-scheme: light;
-        supported-color-schemes: light;
-    }}
+    .mmzr-logo {{ width: 120px !important; height: 100px !important; max-width: 120px !important; max-height: 100px !important; display: inline-block !important; object-fit: contain !important; border: none !important; outline: none !important; }}
+    :root {{ color-scheme: light; supported-color-schemes: light; }}
     @media (prefers-color-scheme: dark) {{
-        body,
-        .body-wrapper {{
-            background-color: #f4f4f4 !important;
-        }}
-        .content-wrapper {{
-            background-color: #ffffff !important;
-            color: #333333 !important;
-        }}
-        .header-bg {{
-            background-color: #0D2035 !important;
-        }}
-        .header-text {{
-            color: #ffffff !important;
-        }}
-        .section-bg {{
-            background-color: #ffffff !important;
-        }}
-        .performance-header {{
-            color: #0D2035 !important;
-            border-bottom-color: #e0e0e0 !important;
-        }}
-        .data-table {{
-            background-color: #ffffff !important;
-        }}
-        .table-header {{
-            background-color: #f8f9fa !important;
-            color: #0D2035 !important;
-        }}
-        .highlight-section {{
-            background-color: #f8f9fa !important;
-        }}
-        .promoters-section {{
-            background-color: #e8f5e9 !important;
-        }}
-        .detractors-section {{
-            background-color: #ffebee !important;
-        }}
-        td, th, p, h1, h2, h3, h4, h5, h6, li {{
-            color: inherit !important;
-        }}
-        .portfolio-header {{
-            background-color: #0D2035 !important;
-            color: #ffffff !important;
-        }}
+        body, .body-wrapper {{ background-color: #f4f4f4 !important; }}
+        .content-wrapper {{ background-color: #ffffff !important; color: #333333 !important; }}
+        .header-bg {{ background-color: #0D2035 !important; }}
+        .header-text {{ color: #ffffff !important; }}
+        .section-bg {{ background-color: #ffffff !important; }}
+        .performance-header {{ color: #0D2035 !important; border-bottom-color: #e0e0e0 !important; }}
+        .data-table {{ background-color: #ffffff !important; }}
+        .table-header {{ background-color: #f8f9fa !important; color: #0D2035 !important; }}
+        .highlight-section {{ background-color: #f8f9fa !important; }}
+        .promoters-section {{ background-color: #e8f5e9 !important; }}
+        .detractors-section {{ background-color: #ffebee !important; }}
+        td, th, p, h1, h2, h3, h4, h5, h6, li {{ color: inherit !important; }}
+        .portfolio-header {{ background-color: #0D2035 !important; color: #ffffff !important; }}
     }}
     </style>
 </head>
@@ -515,7 +279,6 @@ class MMZREmailGenerator:
         <tr>
             <td align="center" style="padding: 0;">
                 <table role="presentation" class="content-wrapper" style="width: 100%; max-width: 800px; border-collapse: collapse; border: 0; border-spacing: 0; text-align: left; background: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                    <!-- Header -->
                     <tr>
                         <td style="padding: 0;">
                             <table role="presentation" class="header-bg" style="width: 100%; border-collapse: collapse; background: #0D2035;">
@@ -524,7 +287,7 @@ class MMZREmailGenerator:
                                         <table role="presentation" style="width: 100%; border-collapse: collapse;">
                                             <tr>
                                                 <td style="text-align: center; vertical-align: middle; width: 120px;">
-                                                    {f'<img src="{self.logo_base64}" alt="MMZR Family Office" class="mmzr-logo logo" style="width: 120px !important; height: 100px !important; max-width: 120px !important; max-height: 100px !important; display: inline-block; object-fit: contain; border: none; outline: none;">' if self.logo_base64 else '<div style="width: 120px; height: 100px; display: inline-block; background-color: #ffffff; border: 2px solid #0D2035; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0D2035; font-weight: bold; font-size: 14px; text-align: center;">MMZR<br>Family<br>Office</div>'}
+                                                    {f'<img src="{self.logo_base64}" alt="MMZR Family Office" class="mmzr-logo logo" style="width: 120px !important; height: 100px !important; max-width: 120px !important; max-height: 100px !important; display: inline-block; object-fit: contain; border: none; outline: none;">' if self.logo_base64 else '<div style="width: 120px; height: 100px; display: inline-block; background-color: #ffffff; border: 2px solid #0D2035; border-radius: 8px; color: #0D2035; font-weight: bold; font-size: 14px; text-align: center; line-height: 1.2; padding: 20px 0;">MMZR<br>Family<br>Office</div>'}
                                                 </td>
                                                 <td style="text-align: left; vertical-align: middle; padding-left: 10px;">
                                                     <p class="header-text" style="margin: 0; font-size: 21px; color: #ffffff; opacity: 0.9; line-height: 1.2;">MMZR Family Office</p>
@@ -536,83 +299,23 @@ class MMZREmailGenerator:
                                 </tr>
                             </table>
                         </td>
-                    </tr>
-                    
-                    <!-- Content -->
+                    </tr>"""
+    
+    def _generate_html_body_start(self, client_name: str, data_ref: datetime) -> str:
+        """Gera o início do corpo do HTML."""
+        return f"""
                     <tr>
                         <td class="section-bg" style="padding: 20px 20px; background-color: #ffffff;">
                             <h2 style="font-size: 15px; color: #0D2035; margin-bottom: 12px; margin-top: 0;">Olá {client_name},</h2>
-                            
-                            <p style="margin-top: 0; margin-bottom: 9px; ">Segue o relatório mensal com o desempenho de suas carteiras referente a <strong>{data_ref.strftime('%d/%m/%Y')}</strong>.</p>"""
-        
-            # Adicionar cada carteira
-            for portfolio in portfolios_data:
-                html += self.generate_portfolio_section(portfolio)
-        
-            # Coletar todos os comentários das carteiras
-            comentarios_todos = []
-            for portfolio in portfolios_data:
-                comentario = portfolio.get('comentarios', '')
-                if comentario and comentario.strip():
-                    comentarios_todos.append(comentario.strip())
-            
-            # Juntar comentários se houver múltiplos
-            comentario_final = ' | '.join(comentarios_todos) if comentarios_todos else ""
-        
-            # Adicionar seções que faltaram
-            html += self.generate_observacoes_section(comentario_final)
-            html += self.generate_principais_indicadores_section()
-            html += self.generate_botao_carta_section(mes, ano)
-        
-            # Footer
-            html += f"""
-                        </td>
-                    </tr>
-                    
-                    <!-- Footer -->
-                    <tr>
-                        <td style="background-color: #f8f9fa; padding: 12px 20px; text-align: center;">
-                            <p style="margin: 0 0 3px 0; color: #666666; font-size: 11px;">MMZR Family Office | Gestão de Patrimônio</p>
-                            <p style="margin: 0 0 3px 0; color: #666666; font-size: 11px;">Este é um email automático. Por favor, não responda.</p>
-                            <p style="margin: 0; color: #666666; font-size: 11px;">© {ano} MMZR Family Office. Todos os direitos reservados.</p>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-</body>
-</html>"""
-            
-            return html
-        
-        except Exception as e:
-            logger.error(f"Erro ao gerar HTML do email: {e}")
-            return ""
+                            <p style="margin-top: 0; margin-bottom: 9px;">Segue o relatório mensal com o desempenho de suas carteiras referente a <strong>{data_ref.strftime('%d/%m/%Y')}</strong>.</p>"""
     
-    def generate_portfolio_section(self, portfolio: Dict[str, Any]) -> str:
-        """
-        Gera a seção HTML de uma carteira específica.
-        
-        Args:
-            portfolio (Dict[str, Any]): Dados da carteira
-            
-        Returns:
-            str: HTML da seção da carteira
-        """
+    def _generate_portfolio_section(self, portfolio: Dict[str, Any]) -> str:
+        """Gera a seção de uma carteira."""
         name = portfolio.get('name', 'Carteira')
         portfolio_type = portfolio.get('type', 'Diversificada')
-        comentarios = portfolio.get('comentarios', '')  # Comentários específicos da carteira
         data = portfolio.get('data', {})
         
-        performance_data = data.get('performance', [])
-        retorno_financeiro = data.get('retorno_financeiro', 0)
-        estrategias_destaque = data.get('estrategias_destaque', [])
-        ativos_promotores = data.get('ativos_promotores', [])
-        ativos_detratores = data.get('ativos_detratores', [])
-        
-        html = f"""
-                            <!-- Carteira: {name} -->
+        return f"""
                             <table role="presentation" style="width: 100%; margin: 20px 0 0 0; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background-color: #ffffff;">
                                 <tr>
                                     <td class="header-bg portfolio-header" style="background-color: #0D2035; color: #ffffff; padding: 10px 15px;">
@@ -621,41 +324,29 @@ class MMZREmailGenerator:
                                 </tr>
                                 <tr>
                                     <td class="section-bg" style="padding: 15px; background-color: #ffffff;">
-                                        {self.generate_performance_table(performance_data, retorno_financeiro)}
-                                        
-                                        {self.generate_highlight_strategies_section(estrategias_destaque)}
-                                        
-                                        {self.generate_promoter_assets_section(ativos_promotores)}
-                                        
-                                        {self.generate_detractor_assets_section(ativos_detratores)}
+                                        {self._generate_performance_table(data.get('performance', []), data.get('retorno_financeiro', 0))}
+                                        {self._generate_strategies_section(data.get('estrategias_destaque', []))}
+                                        {self._generate_assets_section('Promotores', data.get('ativos_promotores', []), '#e8f5e9', '#2e7d32')}
+                                        {self._generate_assets_section('Detratores', data.get('ativos_detratores', []), '#ffebee', '#c62828')}
                                     </td>
                                 </tr>
-                            </table>
-"""
-        return html
+                            </table>"""
     
-    def generate_performance_table(self, performance_data, retorno_financeiro=None):
-        """Gera a tabela HTML de performance, incluindo retorno financeiro"""
-        
-        # Filtrar apenas os períodos necessários (Mês atual e No ano) sem duplicações
+    def _generate_performance_table(self, performance_data: List[Dict], retorno_financeiro: float) -> str:
+        """Gera tabela de performance."""
+        # Filtrar dados únicos
         filtered_data = []
-        mes_adicionado = False
-        ano_adicionado = False
+        mes_added, ano_added = False, False
         
         for item in performance_data:
             periodo = item['periodo'].lower() if isinstance(item['periodo'], str) else ""
-            
-            # Verificar se é mês atual
-            if ":" in periodo and any(m.lower() in periodo for m in self.meses_pt.values()) and not mes_adicionado:
+            if ":" in periodo and any(m.lower() in periodo for m in self.meses_pt.values()) and not mes_added:
                 filtered_data.append(item)
-                mes_adicionado = True
-            # Verificar se é ano atual
-            elif "no ano" in periodo and not ano_adicionado:
+                mes_added = True
+            elif "no ano" in periodo and not ano_added:
                 filtered_data.append(item)
-                ano_adicionado = True
-                
-            # Se já temos os dois períodos, parar
-            if mes_adicionado and ano_adicionado:
+                ano_added = True
+            if mes_added and ano_added:
                 break
         
         html = """
@@ -669,157 +360,102 @@ class MMZREmailGenerator:
                                                     <th class="table-header" style="background-color: #f8f9fa; color: #0D2035; font-weight: 600; padding: 8px 6px; text-align: center; border-bottom: 1px solid #dee2e6;">Carteira vs. Benchmark</th>
                                                 </tr>
                                             </thead>
-                                            <tbody>
-"""
+                                            <tbody>"""
         
-        # Adicionar cada linha de performance
         for item in filtered_data:
-            periodo = item['periodo']
-            carteira = item['carteira']
-            benchmark = item['benchmark']
-            diferenca = item['diferenca']
-            
-            # Determinar cores com base nos valores
-            carteira_color = "#28a745" if carteira > 0 else "#dc3545" if carteira < 0 else "#333333"
-            diferenca_color = "#28a745" if diferenca > 0 else "#dc3545" if diferenca < 0 else "#333333"
+            carteira_color = "#28a745" if item['carteira'] > 0 else "#dc3545" if item['carteira'] < 0 else "#333333"
+            diferenca_color = "#28a745" if item['diferenca'] > 0 else "#dc3545" if item['diferenca'] < 0 else "#333333"
             
             html += f"""
                                                 <tr>
-                                                    <td style="padding: 8px 6px; text-align: left; border-bottom: 1px solid #dee2e6; background-color: #ffffff;">{periodo}</td>
-                                                    <td style="padding: 8px 6px; text-align: center; border-bottom: 1px solid #dee2e6; color: {carteira_color}; font-weight: 500; background-color: #ffffff;">{self.format_percentage(carteira)}</td>
-                                                    <td style="padding: 8px 6px; text-align: center; border-bottom: 1px solid #dee2e6; background-color: #ffffff;">{self.format_percentage(benchmark)}</td>
-                                                    <td style="padding: 8px 6px; text-align: center; border-bottom: 1px solid #dee2e6; color: {diferenca_color}; font-weight: 500; background-color: #ffffff;">{self.format_percentage(diferenca).replace('%', ' p.p.')}</td>
-                                                </tr>
-"""
+                                                    <td style="padding: 8px 6px; text-align: left; border-bottom: 1px solid #dee2e6; background-color: #ffffff;">{item['periodo']}</td>
+                                                    <td style="padding: 8px 6px; text-align: center; border-bottom: 1px solid #dee2e6; color: {carteira_color}; font-weight: 500; background-color: #ffffff;">{self.format_percentage(item['carteira'])}</td>
+                                                    <td style="padding: 8px 6px; text-align: center; border-bottom: 1px solid #dee2e6; background-color: #ffffff;">{self.format_percentage(item['benchmark'])}</td>
+                                                    <td style="padding: 8px 6px; text-align: center; border-bottom: 1px solid #dee2e6; color: {diferenca_color}; font-weight: 500; background-color: #ffffff;">{self.format_percentage(item['diferenca']).replace('%', ' p.p.')}</td>
+                                                </tr>"""
         
-        # Adicionar linha de retorno financeiro se disponível
         if retorno_financeiro is not None:
             color = "#28a745" if retorno_financeiro > 0 else "#dc3545" if retorno_financeiro < 0 else "#333333"
             html += f"""
                                                 <tr>
                                                     <td style="padding: 8px 6px; text-align: left; border-bottom: 1px solid #dee2e6; font-weight: 500; background-color: #ffffff;">Retorno Financeiro:</td>
                                                     <td style="padding: 8px 6px; text-align: center; border-bottom: 1px solid #dee2e6; color: {color}; font-weight: 500; background-color: #ffffff;" colspan="3">{self.format_currency(retorno_financeiro)}</td>
-                                                </tr>
-"""
+                                                </tr>"""
         
-        html += """
+        return html + """
                                             </tbody>
-                                        </table>
-"""
-        return html
+                                        </table>"""
     
-    def generate_financial_return_section(self, retorno_financeiro):
-        """Gera a seção de retorno financeiro"""
-        
-        html = f"""
-                                        <h4 class="performance-header" style="font-size: 18px; color: #0D2035; margin: 20px 0 12px 0; font-weight: 500; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px;">Retorno Financeiro</h4>
-                                        <p style="font-size: 15px; margin: 8px 0 15px 0; padding: 10px; background-color: #f8f9fa; border-radius: 5px; text-align: center; font-weight: 500; color: #0D2035;">
-                                            {self.format_currency(retorno_financeiro)}
-                                        </p>
-"""
-        return html
-    
-    def generate_highlight_strategies_section(self, estrategias):
-        """Gera a seção de estratégias de destaque"""
-        
+    def _generate_strategies_section(self, strategies: List[str]) -> str:
+        """Gera seção de estratégias."""
         html = """
                                         <h4 class="performance-header" style="font-size: 18px; color: #0D2035; margin: 20px 0 12px 0; font-weight: 500; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px;">Estratégias de Destaque</h4>
-                                        <ul class="highlight-section" style="margin: 8px 0 15px 0; padding: 10px 10px 10px 30px; background-color: #f8f9fa; border-radius: 5px; color: #333333;">
-"""
+                                        <ul class="highlight-section" style="margin: 8px 0 15px 0; padding: 10px 10px 10px 30px; background-color: #f8f9fa; border-radius: 5px; color: #333333;">"""
         
-        for estrategia in estrategias:
+        for strategy in strategies:
             html += f"""
-                                            <li style="margin-bottom: 6px; font-size: 13px;">{estrategia}</li>
-"""
+                                            <li style="margin-bottom: 6px; font-size: 13px;">{strategy}</li>"""
         
-        html += """
-                                        </ul>
-"""
-        return html
+        return html + """
+                                        </ul>"""
     
-    def generate_promoter_assets_section(self, ativos):
-        """Gera a seção de ativos promotores"""
+    def _generate_assets_section(self, title: str, assets: List[str], bg_color: str, text_color: str) -> str:
+        """Gera seção de ativos (promotores ou detratores)."""
+        import re
         
-        html = """
-                                        <h4 class="performance-header" style="font-size: 18px; color: #0D2035; margin: 20px 0 12px 0; font-weight: 500; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px;">Ativos Promotores</h4>
-                                        <ul class="promoters-section" style="margin: 8px 0 15px 0; padding: 10px 10px 10px 30px; background-color: #e8f5e9; border-radius: 5px; color: #2e7d32;">
-"""
+        html = f"""
+                                        <h4 class="performance-header" style="font-size: 18px; color: #0D2035; margin: 20px 0 12px 0; font-weight: 500; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px;">Ativos {title}</h4>
+                                        <ul class="{title.lower()}-section" style="margin: 8px 0 15px 0; padding: 10px 10px 10px 30px; background-color: {bg_color}; border-radius: 5px; color: {text_color};">"""
         
-        for ativo in ativos:
-            # Adicionar o símbolo "+" antes da porcentagem se for um valor positivo
-            import re
-            ativo_formatado = ativo
-            percentage_match = re.search(r'\(([-+]?\d+[.,]?\d*)%\)', ativo)
-            if percentage_match:
-                percentage_str = percentage_match.group(1).replace(',', '.')
-                try:
-                    percentage = float(percentage_str)
-                    if percentage > 0 and not percentage_str.startswith('+'):
-                        # Substituir a porcentagem sem o "+" por uma com o "+"
-                        ativo_formatado = ativo.replace(f"({percentage_str}%)", f"(+{percentage_str}%)")
-                except ValueError:
-                    pass
-                    
+        for asset in assets:
+            # Adicionar "+" para promotores se necessário
+            if title == 'Promotores':
+                percentage_match = re.search(r'\(([-+]?\d+[.,]?\d*)%\)', asset)
+                if percentage_match:
+                    percentage_str = percentage_match.group(1).replace(',', '.')
+                    try:
+                        percentage = float(percentage_str)
+                        if percentage > 0 and not percentage_str.startswith('+'):
+                            asset = asset.replace(f"({percentage_str}%)", f"(+{percentage_str}%)")
+                    except ValueError:
+                        pass
+            
             html += f"""
-                                            <li style="margin-bottom: 6px; font-size: 13px;">{ativo_formatado}</li>
-"""
+                                            <li style="margin-bottom: 6px; font-size: 13px;">{asset}</li>"""
         
-        html += """
-                                        </ul>
-"""
-        return html
+        return html + """
+                                        </ul>"""
     
-    def generate_detractor_assets_section(self, ativos):
-        """Gera a seção de ativos detratores"""
+    def _generate_observacoes_section(self, comentario: str, bankers_info: Dict[str, str]) -> str:
+        """Gera seção de observações."""
+        banker_padrao = bankers_info.get('banker_padrao', 'Felipe')
+        outro_banker = bankers_info.get('outro_banker', 'Fernandito')
         
-        html = """
-                                        <h4 class="performance-header" style="font-size: 18px; color: #0D2035; margin: 20px 0 12px 0; font-weight: 500; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px;">Ativos Detratores</h4>
-                                        <ul class="detractors-section" style="margin: 8px 0 15px 0; padding: 10px 10px 10px 30px; background-color: #ffebee; border-radius: 5px; color: #c62828;">
-"""
-        
-        for ativo in ativos:
-            html += f"""
-                                            <li style="margin-bottom: 6px; font-size: 13px;">{ativo}</li>
-"""
-        
-        html += """
-                                        </ul>
-"""
-        return html
-    
-    def generate_observacoes_section(self, comentario_adicional: str = "") -> str:
-        """Gera a seção de observações incluindo comentário adicional da planilha."""
-        
-        html = """
-                            <!-- Observações finais -->
+        html = f"""
                             <table role="presentation" style="width: 100%; margin-top: 20px; border-collapse: collapse; background-color: #f8f9fa; border: 1px solid #e9ecef;">
                                 <tr>
                                     <td style="padding: 15px;">
                                         <p style="margin: 0 0 12px 0; color: #555555; font-size: 13px; line-height: 18px;">
-                                            <strong style="font-weight: bold;">Obs.:</strong> Eventuais ajustes retroativos do IPCA, após a divulgação oficial do indicador, podem impactar marginalmente a rentabilidade do portfólio no mês anterior.
+                                            <strong>Obs.:</strong> Eventuais ajustes retroativos do IPCA, após a divulgação oficial do indicador, podem impactar marginalmente a rentabilidade do portfólio no mês anterior.
                                         </p>
                                         <p style="margin: 0; color: #555555; font-size: 12px; font-style: italic; line-height: 16px;">
-                                            <strong style="font-weight: bold;">Obs.:</strong> Conforme solicitado, deixo o Felipe e Fernandito em cópia para também receberem as informações.
+                                            <strong>Obs.:</strong> Conforme solicitado, deixo o {banker_padrao} e {outro_banker} em cópia para também receberem as informações.
                                         </p>"""
         
-        if comentario_adicional:
+        if comentario:
             html += f"""
                                         <p style="margin: 12px 0 0 0; color: #555555; font-size: 13px; line-height: 18px;">
-                                            <strong style="font-weight: bold;">Comentário:</strong> {comentario_adicional}
+                                            <strong>Comentário:</strong> {comentario}
                                         </p>"""
         
-        html += """
+        return html + """
                                     </td>
                                 </tr>
-                            </table>
-"""
-        return html
+                            </table>"""
     
-    def generate_principais_indicadores_section(self) -> str:
-        """Gera a seção de principais indicadores."""
-        
-        html = """
-                            <!-- Principais indicadores -->
+    def _generate_principais_indicadores_section(self) -> str:
+        """Gera seção de principais indicadores."""
+        return """
                             <table role="presentation" style="width: 100%; margin-top: 15px; border-collapse: collapse; background-color: #f8f9fa; border: 1px solid #e9ecef;">
                                 <tr>
                                     <td style="padding: 12px;">
@@ -830,18 +466,12 @@ class MMZREmailGenerator:
                                         </p>
                                     </td>
                                 </tr>
-                            </table>
-"""
-        return html
+                            </table>"""
     
-    def generate_botao_carta_section(self, mes: str, ano: int) -> str:
-        """Gera a seção do botão da carta mensal."""
-        
-        mes_lowercase = mes.lower()
-        carta_link = f"https://www.mmzrfo.com.br/post/carta-mensal-{mes_lowercase}-{ano}"
-        
-        html = f"""
-                            <!-- Link para carta mensal como botão azul -->
+    def _generate_carta_section(self, mes: str, ano: int) -> str:
+        """Gera seção da carta mensal."""
+        carta_link = f"https://www.mmzrfo.com.br/post/carta-mensal-{mes.lower()}-{ano}"
+        return f"""
                             <table role="presentation" style="width: 100%; margin-top: 25px; border-collapse: collapse;">
                                 <tr>
                                     <td align="center" style="padding: 0;">
@@ -854,68 +484,45 @@ class MMZREmailGenerator:
                                         </table>
                                     </td>
                                 </tr>
-                            </table>
-"""
-        return html
+                            </table>"""
+    
+    def _generate_html_footer(self, ano: int) -> str:
+        """Gera rodapé HTML."""
+        return f"""
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 12px 20px; text-align: center;">
+                            <p style="margin: 0 0 3px 0; color: #666666; font-size: 11px;">MMZR Family Office | Gestão de Patrimônio</p>
+                            <p style="margin: 0 0 3px 0; color: #666666; font-size: 11px;">Este é um email automático. Por favor, não responda.</p>
+                            <p style="margin: 0; color: #666666; font-size: 11px;">© {ano} MMZR Family Office. Todos os direitos reservados.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>"""
     
     def generate_email_subject(self, data_ref: datetime) -> str:
-        """
-        Gera o assunto do email baseado na data de referência.
-        
-        Args:
-            data_ref (datetime): Data de referência para o relatório
-            
-        Returns:
-            str: Assunto formatado para o email
-        """
-        try:
-            mes_nome = self.meses_pt[data_ref.month]
-            ano = data_ref.year
-            
-            # Formato: "MMZR Family Office - Relatório de Performance - Junho/2025"
-            assunto = f"MMZR Family Office - Relatório de Performance - {mes_nome}/{ano}"
-            
-            logger.info(f"Assunto do email gerado: {assunto}")
-            return assunto
-            
-        except Exception as e:
-            logger.error(f"Erro ao gerar assunto do email: {e}")
-            # Fallback para assunto básico
-            return "MMZR Family Office - Relatório de Performance"
+        """Gera assunto do email."""
+        mes_nome = self.meses_pt[data_ref.month]
+        return f"MMZR Family Office - Relatório de Performance - {mes_nome}/{data_ref.year}"
     
     def save_email_to_file(self, html_content: str, client_name: str, output_path: Optional[str] = None) -> str:
-        """
-        Salva o conteúdo HTML do e-mail em um arquivo.
-        
-        Args:
-            html_content (str): Conteúdo HTML do email
-            client_name (str): Nome do cliente
-            output_path (Optional[str]): Caminho de saída personalizado
-            
-        Returns:
-            str: Caminho do arquivo salvo
-            
-        Raises:
-            IOError: Se não conseguir salvar o arquivo
-        """
+        """Salva email em arquivo HTML."""
         try:
-            # Remover caracteres inválidos para nome de arquivo
-            safe_client_name = "".join([c if c.isalnum() or c in [' ', '_'] else '_' for c in client_name])
-            safe_client_name = safe_client_name.replace(' ', '_')
-            
-            # Data atual para nome do arquivo
+            safe_name = "".join([c if c.isalnum() or c in [' ', '_'] else '_' for c in client_name]).replace(' ', '_')
             date_str = datetime.now().strftime("%Y%m%d")
             
-            # Caminho de saída
             if not output_path:
-                filename = f"relatorio_mensal_{safe_client_name}_{date_str}.html"
-                output_path = filename
+                output_path = f"relatorio_mensal_{safe_name}_{date_str}.html"
             
-            # Salvar o arquivo
             with open(output_path, 'w', encoding='utf-8') as f:
                 f.write(html_content)
             
-            logger.info(f"Relatório salvo em: {output_path}")
+            logger.info(f"Relatório salvo: {output_path}")
             return output_path
             
         except Exception as e:
@@ -947,9 +554,13 @@ def process_and_generate_report(excel_path: str, client_config: Dict[str, Any]) 
         # Inicializar dados do cliente
         client_name = client_config.get('name', 'Cliente')
         client_email = client_config.get('email', '')
+        client_banker = client_config.get('banker', None)  # Banker do cliente se disponível
         
         # Data de referência (hoje como padrão)
         data_ref = datetime.now()
+        
+        # Extrair informações dos bankers
+        bankers_info = generator.extract_banker_info(excel_path, client_banker)
         
         # Processar cada carteira
         portfolios_data = []
@@ -971,8 +582,8 @@ def process_and_generate_report(excel_path: str, client_config: Dict[str, Any]) 
                         'performance': generator.extract_performance_data(df),
                         'retorno_financeiro': generator.extract_financial_return(df),
                         'estrategias_destaque': generator.extract_highlight_strategies(df),
-                        'ativos_promotores': generator.extract_promoter_assets(df),
-                        'ativos_detratores': generator.extract_detractor_assets(df)
+                        'ativos_promotores': generator.extract_assets(df, 'promotor'),
+                        'ativos_detratores': generator.extract_assets(df, 'detrator')
                     }
                 }
                 
@@ -982,13 +593,14 @@ def process_and_generate_report(excel_path: str, client_config: Dict[str, Any]) 
                 logger.error(error_msg)
                 raise ValueError(error_msg)
         
-        # Gerar o HTML do e-mail
-        html_content = generator.generate_html_email(client_name, data_ref, portfolios_data)
+        # Gerar o HTML do e-mail com informações dinâmicas dos bankers
+        html_content = generator.generate_html_email(client_name, data_ref, portfolios_data, bankers_info)
         
         # Salvar o e-mail em um arquivo
         output_file = generator.save_email_to_file(html_content, client_name)
         
         logger.info(f"Relatório gerado com sucesso para {client_name}!")
+        logger.info(f"Bankers: {bankers_info['banker_padrao']} e {bankers_info['outro_banker']}")
         return output_file
     
     except Exception as e:

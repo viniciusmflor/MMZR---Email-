@@ -1,17 +1,14 @@
-# Dependências principais para o projeto MMZR Family Office
-# Gerador de Relatórios de Performance Financeira
+# MMZR Family Office - Dependências Essenciais
+# Versão Final 3.0.0
 
-# Manipulação de dados e análise
-pandas>=2.2.0,<3.0.0
-numpy>=1.24.0,<2.0.0
-openpyxl>=3.1.0,<4.0.0
+# Análise de dados
+pandas>=2.0.0
 
-# Visualização e imagens
-matplotlib>=3.8.0,<4.0.0
-Pillow>=10.0.0,<11.0.0
+# Manipulação de arquivos Excel
+openpyxl>=3.1.0
 
-# Typing e validação (para melhor qualidade do código)
-typing-extensions>=4.8.0,<5.0.0
+# Envio de emails (Windows)
+pywin32>=306; sys_platform == "win32"
 
-# Integração Windows (opcional - instalado automaticamente no Windows)
-# pywin32>=306; sys_platform == "win32" 
+# Processamento de datas
+python-dateutil>=2.8.0 

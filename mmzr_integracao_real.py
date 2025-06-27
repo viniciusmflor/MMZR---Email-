@@ -1,176 +1,165 @@
-# import os
-import json
+"""
+MMZR Family Office - Integração com Planilhas
+Sistema integrado de geração de relatórios
+
+Autor: MMZR Family Office
+"""
+
 import pandas as pd
 from datetime import datetime
 from mmzr_email_generator import MMZREmailGenerator
 from mmzr_compatibilidade import MMZRCompatibilidade
 
+
 def gerar_relatorio_integrado(planilha_base=None, planilha_rentabilidade=None, nome_ou_email_cliente=None, enviar_email=False):
-    """Gera relatório integrando dados das planilhas"""
+    """Gera relatório integrando dados das planilhas."""
     generator = MMZREmailGenerator()
     
     if not planilha_base or not planilha_rentabilidade:
         planilha_base, planilha_rentabilidade = MMZRCompatibilidade.get_planilhas_path()
     
     try:
-        # Carregar planilha base
-        excel_base = pd.ExcelFile(planilha_base)
-        
-        # Carregar a aba Base Clientes
-        if "Base Clientes" in excel_base.sheet_names:
-            df_clientes = pd.read_excel(excel_base, sheet_name="Base Clientes")
-            df_clientes['Nome cliente'] = df_clientes['Nome cliente'].str.strip()
-            df_clientes = df_clientes[df_clientes['Nome cliente'] != 'Nome Cliente']
-            
-            # Carregar a aba Base Consolidada para obter os emails
-            if "Base Consolidada" in excel_base.sheet_names:
-                df_consolidada = pd.read_excel(excel_base, sheet_name="Base Consolidada")
-                df_consolidada['NomeCompletoCliente'] = df_consolidada['NomeCompletoCliente'].str.strip()
-                
-                df_clientes = df_clientes.merge(
-                    df_consolidada[['NomeCompletoCliente', 'EmailCliente']], 
-                    left_on='Nome cliente', 
-                    right_on='NomeCompletoCliente', 
-                    how='left'
-                )
-                
-                df_clientes['Email cliente'] = df_clientes['EmailCliente']
-                
-                # Criar emails fictícios para clientes sem email
-                clientes_sem_email = df_clientes['Email cliente'].isna()
-                if clientes_sem_email.any():
-                    df_clientes.loc[clientes_sem_email, 'Email cliente'] = df_clientes.loc[clientes_sem_email, 'Nome cliente'].apply(
-                        lambda nome: f"{nome.lower().replace(' ', '.')}@example.com"
-                    )
-            else:
-                df_clientes['Email cliente'] = df_clientes['Nome cliente'].apply(
-                    lambda nome: f"{nome.lower().replace(' ', '.')}@example.com"
-                )
-        else:
-            print("ERRO: Aba 'Base Clientes' não encontrada na planilha base")
-            return
-        
-        # Carregar planilha de rentabilidade
-        excel_rent = pd.ExcelFile(planilha_rentabilidade)
-        primeira_aba = excel_rent.sheet_names[0]
-        df_rentabilidade = pd.read_excel(excel_rent, sheet_name=primeira_aba)
+        # Carregar dados base
+        df_clientes = _carregar_dados_clientes(planilha_base)
+        df_rentabilidade = _carregar_dados_rentabilidade(planilha_rentabilidade)
         
         # Processar cliente específico ou todos
-        if nome_ou_email_cliente:
-            nome_ou_email_cliente = nome_ou_email_cliente.strip()
-            df_cliente = df_clientes[
-                (df_clientes['Nome cliente'] == nome_ou_email_cliente) | 
-                (df_clientes['Email cliente'] == nome_ou_email_cliente)
-            ]
-            
-            if len(df_cliente) == 0:
-                print(f"ERRO: Cliente '{nome_ou_email_cliente}' não encontrado")
-                return
-            
-            clientes_agrupados = df_cliente.groupby('Nome cliente')
-        else:
-            clientes_agrupados = df_clientes.groupby('Nome cliente')
+        clientes_agrupados = _filtrar_clientes(df_clientes, nome_ou_email_cliente)
         
         # Processar cada cliente
         for nome_cliente, carteiras_cliente in clientes_agrupados:
-            email_cliente = carteiras_cliente['Email cliente'].iloc[0]
-            portfolios_data = []
-            
-            # Processar cada carteira do cliente
-            for _, cliente_row in carteiras_cliente.iterrows():
-                codigo_carteira = cliente_row['Código carteira smart']
-                df_rent_cliente = df_rentabilidade[df_rentabilidade['Código carteira smart'] == codigo_carteira]
-                
-                if len(df_rent_cliente) == 0:
-                    continue
-                
-                portfolio_data = obter_dados_carteira(cliente_row, df_rent_cliente.iloc[0], generator)
-                if portfolio_data:
-                    portfolios_data.append(portfolio_data)
-            
-            # Gerar relatório se há dados
-            if portfolios_data:
-                html_content = generator.generate_html_email(nome_cliente, datetime.now(), portfolios_data)
-                output_file = generator.save_email_to_file(html_content, nome_cliente)
-                print(f"Relatório gerado: {output_file}")
-                
-                # Enviar email se solicitado
-                if enviar_email:
-                    assunto = generator.generate_email_subject(datetime.now())
-                    enviado = MMZRCompatibilidade.enviar_email(
-                        destinatario=email_cliente, 
-                        assunto=assunto, 
-                        caminho_html=output_file
-                    )
-                    
-                    if enviado:
-                        print(f"Email criado para {email_cliente}")
-        
+            _processar_cliente(
+                nome_cliente, 
+                carteiras_cliente, 
+                df_rentabilidade, 
+                generator, 
+                planilha_base, 
+                enviar_email
+            )
+    
     except Exception as e:
         print(f"ERRO: {str(e)}")
 
-def obter_dados_carteira(dados_cliente, dados_rentabilidade, generator):
-    """Processa os dados de uma carteira e retorna os dados formatados"""
-    try:
-        nome_carteira = dados_cliente['Nome carteira']
-        estrategia = dados_cliente['Estratégia carteira']
-        codigo = dados_cliente['Código carteira smart']
+
+def _carregar_dados_clientes(planilha_base):
+    """Carrega e processa dados dos clientes."""
+    excel_base = pd.ExcelFile(planilha_base)
+    
+    if "Base Clientes" not in excel_base.sheet_names:
+        raise ValueError("Aba 'Base Clientes' não encontrada na planilha base")
+    
+    df_clientes = pd.read_excel(excel_base, sheet_name="Base Clientes")
+    
+    # Verificar se coluna existe e tem valores válidos
+    if 'Nome cliente' not in df_clientes.columns:
+        raise ValueError("Coluna 'Nome cliente' não encontrada na planilha")
+    
+    # Tratar valores nulos na coluna Nome cliente
+    df_clientes['Nome cliente'] = df_clientes['Nome cliente'].fillna('').astype(str).str.strip()
+    df_clientes = df_clientes[df_clientes['Nome cliente'] != 'Nome Cliente']
+    df_clientes = df_clientes[df_clientes['Nome cliente'] != '']
+    
+    # Integrar dados consolidados se disponível
+    if "Base Consolidada" in excel_base.sheet_names:
+        df_consolidada = pd.read_excel(excel_base, sheet_name="Base Consolidada")
         
-        # Criar dados de performance
-        performance_data = [
-            {
-                'periodo': f"{generator.meses_pt[datetime.now().month]}:",
-                'carteira': dados_rentabilidade['Rentabilidade Carteira Mês'],
-                'benchmark': dados_rentabilidade['Benchmark Mês'],
-                'diferenca': dados_rentabilidade['Variação Relativa Mês']
-            },
-            {
-                'periodo': "No ano:",
-                'carteira': dados_rentabilidade['Rentabilidade Carteira No Ano'],
-                'benchmark': dados_rentabilidade['Benchmark No Ano'],
-                'diferenca': dados_rentabilidade['Variação Relativa No Ano']
-            }
+        # Verificar e tratar coluna NomeCompletoCliente
+        if 'NomeCompletoCliente' in df_consolidada.columns:
+            df_consolidada['NomeCompletoCliente'] = df_consolidada['NomeCompletoCliente'].fillna('').astype(str).str.strip()
+        
+        df_clientes = df_clientes.merge(
+            df_consolidada[['NomeCompletoCliente', 'EmailCliente', 'Banker']], 
+            left_on='Nome cliente', 
+            right_on='NomeCompletoCliente', 
+            how='left'
+        )
+        
+        df_clientes['Email cliente'] = df_clientes['EmailCliente']
+        df_clientes['Banker Cliente'] = df_clientes['Banker']
+        
+        # Gerar emails fictícios para clientes sem email
+        clientes_sem_email = df_clientes['Email cliente'].isna()
+        if clientes_sem_email.any():
+            df_clientes.loc[clientes_sem_email, 'Email cliente'] = df_clientes.loc[clientes_sem_email, 'Nome cliente'].apply(
+                lambda nome: f"{nome.lower().replace(' ', '.')}@example.com"
+            )
+    else:
+        df_clientes['Email cliente'] = df_clientes['Nome cliente'].apply(
+            lambda nome: f"{nome.lower().replace(' ', '.')}@example.com"
+        )
+        df_clientes['Banker Cliente'] = None
+    
+    return df_clientes
+
+
+def _carregar_dados_rentabilidade(planilha_rentabilidade):
+    """Carrega dados de rentabilidade."""
+    excel_rent = pd.ExcelFile(planilha_rentabilidade)
+    primeira_aba = excel_rent.sheet_names[0]
+    return pd.read_excel(excel_rent, sheet_name=primeira_aba)
+
+
+def _filtrar_clientes(df_clientes, nome_ou_email_cliente):
+    """Filtra clientes baseado no critério fornecido."""
+    if nome_ou_email_cliente:
+        nome_ou_email_cliente = nome_ou_email_cliente.strip()
+        df_filtrado = df_clientes[
+            (df_clientes['Nome cliente'] == nome_ou_email_cliente) | 
+            (df_clientes['Email cliente'] == nome_ou_email_cliente)
         ]
         
-        # Extrair estratégias de destaque
-        estrategias = []
-        if pd.notna(dados_rentabilidade['Estratégia de Destaque 1']):
-            estrategias.append(dados_rentabilidade['Estratégia de Destaque 1'])
-        if pd.notna(dados_rentabilidade['Estratégia de Destaque 2']):
-            estrategias.append(dados_rentabilidade['Estratégia de Destaque 2'])
+        if len(df_filtrado) == 0:
+            raise ValueError(f"Cliente '{nome_ou_email_cliente}' não encontrado")
         
-        # Extrair ativos promotores
-        promotores = []
-        if pd.notna(dados_rentabilidade['Ativo Promotor 1']):
-            promotores.append(dados_rentabilidade['Ativo Promotor 1'])
-        if pd.notna(dados_rentabilidade['Ativo Promotor 2']):
-            promotores.append(dados_rentabilidade['Ativo Promotor 2'])
+        return df_filtrado.groupby('Nome cliente')
+    
+    return df_clientes.groupby('Nome cliente')
+
+
+def _processar_cliente(nome_cliente, carteiras_cliente, df_rentabilidade, generator, planilha_base, enviar_email):
+    """Processa um cliente específico."""
+    email_cliente = carteiras_cliente['Email cliente'].iloc[0]
+    banker_cliente = carteiras_cliente['Banker Cliente'].iloc[0] if 'Banker Cliente' in carteiras_cliente.columns else None
+    
+    # Extrair informações dos bankers
+    bankers_info = generator.extract_banker_info(planilha_base, banker_cliente)
+    
+    # Processar carteiras
+    portfolios_data = []
+    for _, cliente_row in carteiras_cliente.iterrows():
+        codigo_carteira = cliente_row['Código carteira smart']
+        df_rent_cliente = df_rentabilidade[df_rentabilidade['Código carteira smart'] == codigo_carteira]
         
-        # Extrair ativos detratores
-        detratores = []
-        if pd.notna(dados_rentabilidade['Ativo Detrator 1']):
-            detratores.append(dados_rentabilidade['Ativo Detrator 1'])
-        if pd.notna(dados_rentabilidade['Ativo Detrator 2']):
-            detratores.append(dados_rentabilidade['Ativo Detrator 2'])
-        
-        # Extrair comentários da planilha
-        comentarios_cliente = None
-        if 'Comentários' in dados_cliente:
-            comentarios_raw = dados_cliente['Comentários']
-            if pd.notna(comentarios_raw) and str(comentarios_raw).strip():
-                comentarios_cliente = str(comentarios_raw).strip()
+        if len(df_rent_cliente) > 0:
+            portfolio_data = _obter_dados_carteira(cliente_row, df_rent_cliente.iloc[0], generator)
+            if portfolio_data:
+                portfolios_data.append(portfolio_data)
+    
+    if portfolios_data:
+        _gerar_e_salvar_relatorio(nome_cliente, email_cliente, portfolios_data, bankers_info, generator, enviar_email)
+    else:
+        print(f"❌ ERRO: Nenhuma carteira encontrada para {nome_cliente}")
+
+
+def _obter_dados_carteira(dados_cliente, dados_rentabilidade, generator):
+    """Processa dados de uma carteira específica."""
+    try:
+        # Extrair comentários se disponível
+        comentarios = None
+        if 'Comentários' in dados_cliente and pd.notna(dados_cliente['Comentários']) and dados_cliente['Comentários'] is not None:
+            comentarios = str(dados_cliente['Comentários']).strip()
         
         # Criar dados da carteira
         portfolio_data = {
-            'name': nome_carteira,
-            'type': estrategia,
-            'comentarios': comentarios_cliente,
+            'name': dados_cliente['Nome carteira'],
+            'type': dados_cliente['Estratégia carteira'],
+            'comentarios': comentarios,
             'data': {
-                'performance': performance_data,
+                'performance': _criar_dados_performance(dados_rentabilidade, generator),
                 'retorno_financeiro': dados_rentabilidade['Retorno Financeiro'] if pd.notna(dados_rentabilidade['Retorno Financeiro']) else 0,
-                'estrategias_destaque': estrategias if estrategias else ["Sem estratégias de destaque"],
-                'ativos_promotores': promotores if promotores else ["Sem ativos promotores"],
-                'ativos_detratores': detratores if detratores else ["Sem ativos detratores"]
+                'estrategias_destaque': _extrair_estrategias(dados_rentabilidade),
+                'ativos_promotores': _extrair_ativos(dados_rentabilidade, 'Promotor'),
+                'ativos_detratores': _extrair_ativos(dados_rentabilidade, 'Detrator')
             }
         }
         
@@ -180,45 +169,94 @@ def obter_dados_carteira(dados_cliente, dados_rentabilidade, generator):
         print(f"ERRO ao processar carteira {dados_cliente['Nome carteira']}: {str(e)}")
         return None
 
+
+def _criar_dados_performance(dados_rentabilidade, generator):
+    """Cria dados de performance formatados."""
+    return [
+        {
+            'periodo': f"{generator.meses_pt[datetime.now().month]}:",
+            'carteira': dados_rentabilidade['Rentabilidade Carteira Mês'],
+            'benchmark': dados_rentabilidade['Benchmark Mês'],
+            'diferenca': dados_rentabilidade['Variação Relativa Mês']
+        },
+        {
+            'periodo': "No ano:",
+            'carteira': dados_rentabilidade['Rentabilidade Carteira No Ano'],
+            'benchmark': dados_rentabilidade['Benchmark No Ano'],
+            'diferenca': dados_rentabilidade['Variação Relativa No Ano']
+        }
+    ]
+
+
+def _extrair_estrategias(dados_rentabilidade):
+    """Extrai estratégias de destaque."""
+    estrategias = []
+    for i in [1, 2]:
+        col = f'Estratégia de Destaque {i}'
+        if col in dados_rentabilidade and pd.notna(dados_rentabilidade[col]):
+            estrategias.append(dados_rentabilidade[col])
+    
+    return estrategias if estrategias else ["Sem estratégias de destaque"]
+
+
+def _extrair_ativos(dados_rentabilidade, tipo):
+    """Extrai ativos promotores ou detratores."""
+    ativos = []
+    for i in [1, 2]:
+        col = f'Ativo {tipo} {i}'
+        if col in dados_rentabilidade and pd.notna(dados_rentabilidade[col]):
+            ativo = dados_rentabilidade[col]
+            if str(ativo) != '-':
+                ativos.append(str(ativo))
+    
+    return ativos if ativos else [f"Sem ativos {tipo.lower()}es"]
+
+
+def _gerar_e_salvar_relatorio(nome_cliente, email_cliente, portfolios_data, bankers_info, generator, enviar_email):
+    """Gera e salva o relatório final."""
+    data_ref = datetime.now()
+    
+    # Gerar HTML
+    html_content = generator.generate_html_email(nome_cliente, data_ref, portfolios_data, bankers_info)
+    
+    # Salvar arquivo
+    output_file = generator.save_email_to_file(html_content, nome_cliente)
+    
+    # Exibir resultados
+    print(f"✅ Relatório gerado: {output_file}")
+    print(f"📧 Cliente: {nome_cliente} ({email_cliente})")
+    print(f"🏦 Bankers: {bankers_info['banker_padrao']} e {bankers_info['outro_banker']}")
+    print(f"📊 Carteiras: {len(portfolios_data)}")
+    
+    # Enviar email se solicitado
+    if enviar_email:
+        try:
+            from mmzr_email_sender import enviar_email_outlook
+            assunto = generator.generate_email_subject(data_ref)
+            
+            sucesso = enviar_email_outlook(
+                para=email_cliente,
+                assunto=assunto,
+                corpo_html=html_content
+            )
+            
+            print(f"📧 Email {'preparado' if sucesso else 'com erro'} para {nome_cliente}")
+            
+        except ImportError:
+            print("⚠️  Módulo de envio de email não disponível. Apenas HTML foi gerado.")
+    
+    print("-" * 60)
+
+
 def listar_clientes_disponiveis():
-    """Lista os clientes disponíveis para relatório"""
+    """Lista clientes disponíveis para relatório."""
     try:
         planilha_base, planilha_rentabilidade = MMZRCompatibilidade.get_planilhas_path()
         
-        excel_base = pd.ExcelFile(planilha_base)
-        df_clientes = pd.read_excel(excel_base, sheet_name="Base Clientes")
-        df_clientes['Nome cliente'] = df_clientes['Nome cliente'].str.strip()
-        df_clientes = df_clientes[df_clientes['Nome cliente'] != 'Nome Cliente']
+        df_clientes = _carregar_dados_clientes(planilha_base)
+        df_rentabilidade = _carregar_dados_rentabilidade(planilha_rentabilidade)
         
-        if "Base Consolidada" in excel_base.sheet_names:
-            df_consolidada = pd.read_excel(excel_base, sheet_name="Base Consolidada")
-            df_consolidada['NomeCompletoCliente'] = df_consolidada['NomeCompletoCliente'].str.strip()
-            
-            df_clientes = df_clientes.merge(
-                df_consolidada[['NomeCompletoCliente', 'EmailCliente']], 
-                left_on='Nome cliente', 
-                right_on='NomeCompletoCliente', 
-                how='left'
-            )
-            
-            df_clientes['Email cliente'] = df_clientes['EmailCliente']
-            
-            clientes_sem_email = df_clientes['Email cliente'].isna()
-            if clientes_sem_email.any():
-                df_clientes.loc[clientes_sem_email, 'Email cliente'] = df_clientes.loc[clientes_sem_email, 'Nome cliente'].apply(
-                    lambda nome: f"{nome.lower().replace(' ', '.')}@example.com"
-                )
-        else:
-            df_clientes['Email cliente'] = df_clientes['Nome cliente'].apply(
-                lambda nome: f"{nome.lower().replace(' ', '.')}@example.com"
-            )
-        
-        # Carregar planilha de rentabilidade
-        excel_rent = pd.ExcelFile(planilha_rentabilidade)
-        primeira_aba = excel_rent.sheet_names[0]
-        df_rentabilidade = pd.read_excel(excel_rent, sheet_name=primeira_aba)
-        
-        # Identificar clientes com dados de rentabilidade disponíveis
+        # Filtrar clientes com dados de rentabilidade
         codigos_com_rentabilidade = set(df_rentabilidade['Código carteira smart'])
         df_clientes_com_rentabilidade = df_clientes[df_clientes['Código carteira smart'].isin(codigos_com_rentabilidade)]
         
@@ -229,9 +267,9 @@ def listar_clientes_disponiveis():
         print("-" * 80)
         
         for nome, grupo in clientes_por_nome:
-            carteiras = grupo['Nome carteira'].tolist()
             email = grupo['Email cliente'].iloc[0]
-            print(f"{nome[:30]:<30} | {email[:30]:<30} | {len(carteiras)}")
+            qtd_carteiras = len(grupo)
+            print(f"{nome[:30]:<30} | {email[:30]:<30} | {qtd_carteiras}")
         
         print("-" * 80)
         print(f"Total: {len(clientes_por_nome)} clientes disponíveis")
@@ -242,51 +280,20 @@ def listar_clientes_disponiveis():
         print(f"ERRO ao listar clientes: {str(e)}")
         return []
 
+
+# Interface de linha de comando
 if __name__ == "__main__":
     import sys
     
-    # Verificar compatibilidade
-    compat = MMZRCompatibilidade.testar_compatibilidade()
-    
-    # Processar argumentos de linha de comando
     if len(sys.argv) > 1:
-        if sys.argv[1] == "--help" or sys.argv[1] == "-h":
-            print("\n=== MMZR GERADOR DE RELATÓRIOS ===")
-            print("Uso: python mmzr_integracao_real.py [opções]")
-            print("\nOpções:")
-            print("  --cliente \"[NOME OU EMAIL]\"  Gera relatório para cliente específico")
-            print("  --enviar                    Envia o relatório por email")
-            print("  --listar                    Lista clientes disponíveis")
-            print("  --help, -h                  Mostra esta ajuda")
-            sys.exit(0)
-        
         if sys.argv[1] == "--listar":
             listar_clientes_disponiveis()
-            sys.exit(0)
-        
-        if sys.argv[1] == "--cliente" and len(sys.argv) > 2:
-            nome_ou_email_cliente = sys.argv[2]
-            enviar_email = "--enviar" in sys.argv
-            
-            planilha_base, planilha_rentabilidade = MMZRCompatibilidade.get_planilhas_path()
-            gerar_relatorio_integrado(planilha_base, planilha_rentabilidade, nome_ou_email_cliente, enviar_email)
-            sys.exit(0)
-    
-    # Por padrão, listar clientes disponíveis
-    clientes = listar_clientes_disponiveis()
-    
-    if clientes:
-        try:
-            nome_ou_email = input("\nDigite o nome ou email do cliente (ou Enter para todos): ")
-            enviar = input("Criar e-mail? (s/N): ").lower() == 's'
-            
-            if nome_ou_email.strip():
-                gerar_relatorio_integrado(nome_ou_email_cliente=nome_ou_email, enviar_email=enviar)
-            else:
-                gerar_relatorio_integrado(enviar_email=enviar)
-        except KeyboardInterrupt:
-            print("\nOperação cancelada.")
-            sys.exit(1)
+        elif sys.argv[1] == "--cliente" and len(sys.argv) > 2:
+            cliente = sys.argv[2]
+            enviar = "--enviar" in sys.argv
+            gerar_relatorio_integrado(nome_ou_email_cliente=cliente, enviar_email=enviar)
+        else:
+            print("Uso: python mmzr_integracao_real.py [--listar | --cliente 'Nome Cliente' [--enviar]]")
     else:
-        print("Nenhum cliente disponível para processamento.")
-        sys.exit(1) 
+        # Gerar relatórios para todos os clientes
+        gerar_relatorio_integrado() 

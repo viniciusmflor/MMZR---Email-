@@ -1,485 +1,223 @@
 """
-MMZR Family Office - Módulo de Compatibilidade
-
-Este módulo garante a compatibilidade entre diferentes sistemas operacionais
-(macOS e Windows) para o sistema de geração de relatórios MMZR.
+MMZR Family Office - Sistema de Compatibilidade
+Detecção automática de planilhas
 
 Autor: MMZR Family Office
-Versão: 2.0.0
-Data: 2025-01-11
 """
 
 import os
-import platform
 import pandas as pd
-from datetime import datetime
-from typing import Dict, List, Optional, Tuple, Union, Any
-import logging
-import json
-
-# Configuração de logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from typing import Tuple, Dict, Any
 
 
 class MMZRCompatibilidade:
-    """
-    Classe para garantir a compatibilidade entre macOS e Windows.
+    """Gerencia detecção automática de planilhas e compatibilidade do sistema."""
     
-    Esta classe fornece métodos estáticos para operações que dependem do
-    sistema operacional, como caminhos de arquivos e envio de emails.
-    """
-    
-    @staticmethod
-    def get_os_info() -> Dict[str, str]:
-        """
-        Retorna informações sobre o sistema operacional.
+    @classmethod
+    def get_planilhas_path(cls) -> Tuple[str, str]:
+        """Detecta automaticamente as planilhas base e rentabilidade."""
+        dados_dir = "documentos/dados"
         
-        Returns:
-            Dict[str, str]: Dicionário com informações do sistema operacional
-        """
+        if not os.path.exists(dados_dir):
+            raise FileNotFoundError(f"Pasta não encontrada: {dados_dir}")
+        
+        # Listar arquivos Excel
+        excel_files = []
+        for arquivo in os.listdir(dados_dir):
+            if arquivo.lower().endswith(('.xlsx', '.xlsm', '.xls')):
+                excel_files.append(os.path.join(dados_dir, arquivo))
+        
+        if len(excel_files) == 0:
+            raise FileNotFoundError("Nenhum arquivo Excel encontrado em documentos/dados/")
+        
+        if len(excel_files) == 1:
+            # Se só há um arquivo, usar para ambos
+            return excel_files[0], excel_files[0]
+        
+        # Detectar qual é qual baseado no conteúdo
+        planilha_base = None
+        planilha_rentabilidade = None
+        
+        for arquivo in excel_files:
+            try:
+                excel_file = pd.ExcelFile(arquivo)
+                
+                # Se tem aba "Base Clientes", é a planilha base
+                if "Base Clientes" in excel_file.sheet_names:
+                    planilha_base = arquivo
+                else:
+                    # Senão, provavelmente é a de rentabilidade
+                    planilha_rentabilidade = arquivo
+                    
+            except Exception as e:
+                print(f"Erro ao verificar {arquivo}: {e}")
+                continue
+        
+        # Se não identificou a base, usar o primeiro arquivo
+        if not planilha_base:
+            planilha_base = excel_files[0]
+        
+        # Se não identificou a rentabilidade, usar um arquivo diferente da base
+        if not planilha_rentabilidade:
+            for arquivo in excel_files:
+                if arquivo != planilha_base:
+                    planilha_rentabilidade = arquivo
+                    break
+            
+            # Se ainda não tem, usar o mesmo arquivo
+            if not planilha_rentabilidade:
+                planilha_rentabilidade = planilha_base
+        
+        return planilha_base, planilha_rentabilidade
+    
+    @classmethod
+    def testar_compatibilidade(cls) -> bool:
+        """Testa compatibilidade do sistema."""
         try:
-            return {
-                "sistema": platform.system(),
-                "versao": platform.version(),
-                "arquitetura": str(platform.architecture()),
-                "python": platform.python_version(),
+            # Testar acesso às planilhas
+            planilha_base, planilha_rentabilidade = cls.get_planilhas_path()
+            
+            # Testar leitura das planilhas
+            excel_base = pd.ExcelFile(planilha_base)
+            excel_rent = pd.ExcelFile(planilha_rentabilidade)
+            
+            # Verificar abas essenciais
+            if "Base Clientes" not in excel_base.sheet_names:
+                print("❌ Aba 'Base Clientes' não encontrada na planilha base")
+                return False
+            
+            # Testar leitura básica
+            df_clientes = pd.read_excel(excel_base, sheet_name="Base Clientes", nrows=5)
+            df_rent = pd.read_excel(excel_rent, sheet_name=excel_rent.sheet_names[0], nrows=5)
+            
+            print("✅ Sistema compatível e funcional")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Erro de compatibilidade: {e}")
+            return False
+    
+    @classmethod
+    def verificar_estrutura_dados(cls) -> Dict[str, Any]:
+        """Verifica a estrutura dos dados nas planilhas."""
+        try:
+            planilha_base, planilha_rentabilidade = cls.get_planilhas_path()
+            
+            # Verificar planilha base
+            excel_base = pd.ExcelFile(planilha_base)
+            df_clientes = pd.read_excel(excel_base, sheet_name="Base Clientes")
+            
+            # Verificar planilha de rentabilidade
+            excel_rent = pd.ExcelFile(planilha_rentabilidade)
+            df_rent = pd.read_excel(excel_rent, sheet_name=excel_rent.sheet_names[0])
+            
+            resultado = {
+                "status": "sucesso",
+                "planilha_base": {
+                    "arquivo": os.path.basename(planilha_base),
+                    "abas": excel_base.sheet_names,
+                    "clientes_total": len(df_clientes)
+                },
+                "planilha_rentabilidade": {
+                    "arquivo": os.path.basename(planilha_rentabilidade),
+                    "abas": excel_rent.sheet_names,
+                    "registros_total": len(df_rent)
+                }
             }
-        except Exception as e:
-            logger.error(f"Erro ao obter informações do sistema: {e}")
-            return {"sistema": "Desconhecido", "versao": "", "arquitetura": "", "python": ""}
-    
-    @staticmethod
-    def get_path(*args: str) -> str:
-        """
-        Retorna um caminho compatível com o sistema operacional atual.
-        
-        Args:
-            *args (str): Componentes do caminho
             
-        Returns:
-            str: Caminho formatado para o sistema atual
-        """
-        return os.path.join(*args)
-    
-    @staticmethod
-    def get_abs_path(*args: str) -> str:
-        """
-        Retorna um caminho absoluto compatível com o sistema operacional atual.
-        
-        Args:
-            *args (str): Componentes do caminho
-            
-        Returns:
-            str: Caminho absoluto formatado para o sistema atual
-        """
-        return os.path.abspath(os.path.join(*args))
-    
-    @staticmethod
-    def get_planilhas_path() -> Tuple[str, str]:
-        """
-        Obtém os caminhos das planilhas Excel necessárias.
-        Pode usar configuração personalizada ou detecção automática.
-        
-        Returns:
-            Tuple[str, str]: Tupla com (caminho_planilha_base, caminho_planilha_rentabilidade)
-        """
-        try:
-            base_dir = "documentos"
-            dados_dir = "dados"
-            
-            # Verificar se o diretório documentos/dados existe
-            dados_path = os.path.join(base_dir, dados_dir)
-            if not os.path.exists(dados_path):
-                # Tentar encontrar o diretório correto baseado no diretório atual
-                cwd = os.getcwd()
-                if os.path.basename(cwd) == "MMZR - Email":
-                    dados_path = os.path.join(cwd, base_dir, dados_dir)
-            
-            # Tentar carregar configuração personalizada
-            config_path = "config_planilhas.json"
-            config = MMZRCompatibilidade._load_config(config_path)
-            
-            if config and not config.get("auto_detectar", True):
-                # Usar nomes especificados na configuração
-                planilha_base = config["planilhas"]["planilha_base"]
-                planilha_rentabilidade = config["planilhas"]["planilha_rentabilidade"]
-                
-                if planilha_base and planilha_rentabilidade:
-                    planilha_base = os.path.join(dados_path, planilha_base)
-                    planilha_rentabilidade = os.path.join(dados_path, planilha_rentabilidade)
-                    
-                    logger.info("Usando configuração personalizada de planilhas")
-                    logger.info(f"Base: {planilha_base}")
-                    logger.info(f"Rentabilidade: {planilha_rentabilidade}")
-                    
-                    return planilha_base, planilha_rentabilidade
-            
-            # Detecção automática
-            logger.info("Detectando planilhas automaticamente...")
-            planilha_base, planilha_rentabilidade = MMZRCompatibilidade._detectar_planilhas(dados_path)
-            
-            if planilha_base and planilha_rentabilidade:
-                logger.info(f"Planilhas detectadas: Base={os.path.basename(planilha_base)}, Rentabilidade={os.path.basename(planilha_rentabilidade)}")
-                return planilha_base, planilha_rentabilidade
-            
-            # Fallback para nomes padrão (compatibilidade com versão anterior)
-            logger.warning("Usando nomes de planilhas padrão como fallback")
-            planilha_base = os.path.join(dados_path, "Planilha Inteli.xlsm")
-            planilha_rentabilidade = os.path.join(dados_path, "Planilha Inteli - dados de rentabilidade.xlsx")
-            
-            return planilha_base, planilha_rentabilidade
+            return resultado
             
         except Exception as e:
-            logger.error(f"Erro ao configurar caminhos das planilhas: {e}")
-            return "", ""
-    
-    @staticmethod
-    def _load_config(config_path: str) -> Optional[Dict[str, Any]]:
-        """
-        Carrega configuração de planilhas de um arquivo JSON.
+            return {
+                "status": "erro",
+                "mensagem": str(e)
+            }
+
+
+# Funcionalidades de teste e diagnóstico
+def verificar_status_sistema():
+    """Verifica status geral do sistema."""
+    try:
+        planilha_base, planilha_rentabilidade = MMZRCompatibilidade.get_planilhas_path()
         
-        Args:
-            config_path (str): Caminho para o arquivo de configuração
-            
-        Returns:
-            Optional[Dict[str, Any]]: Configuração carregada ou None se erro
-        """
-        try:
-            if not os.path.exists(config_path):
-                return None
-                
-            with open(config_path, 'r', encoding='utf-8') as f:
-                config = json.load(f)
-                return config
-                
-        except Exception as e:
-            logger.warning(f"Erro ao carregar configuração: {e}")
-            return None
-    
-    @staticmethod
-    def _detectar_planilhas(dados_path: str) -> Tuple[str, str]:
-        """
-        Detecta automaticamente planilhas Excel na pasta de dados.
+        print("=== STATUS DO SISTEMA MMZR ===\n")
+        print(f"Planilha base detectada: {os.path.basename(planilha_base)}")
+        print(f"Planilha rentabilidade detectada: {os.path.basename(planilha_rentabilidade)}")
         
-        Args:
-            dados_path (str): Caminho para a pasta de dados
-            
-        Returns:
-            Tuple[str, str]: Tupla com caminhos das planilhas detectadas
-        """
-        try:
-            if not os.path.exists(dados_path):
-                logger.error(f"Pasta de dados não encontrada: {dados_path}")
-                return "", ""
-            
-            # Listar arquivos Excel na pasta
-            excel_files = []
-            for file in os.listdir(dados_path):
-                if file.lower().endswith(('.xlsx', '.xlsm', '.xls')):
-                    excel_files.append(os.path.join(dados_path, file))
-            
-            if len(excel_files) == 0:
-                logger.error("Nenhum arquivo Excel encontrado na pasta de dados")
-                return "", ""
-            
-            if len(excel_files) == 1:
-                logger.warning("Apenas um arquivo Excel encontrado. Usando o mesmo para ambas as funções.")
-                return excel_files[0], excel_files[0]
-            
-            # Identificar planilhas por estratégia melhorada
-            planilha_base = ""
-            planilha_rentabilidade = ""
-            
-            # Estratégia 1: Identificar por tipo de arquivo e palavras-chave
-            xlsm_files = []
-            xlsx_files = []
-            
-            for file_path in excel_files:
-                filename = os.path.basename(file_path).lower()
-                
-                if filename.endswith('.xlsm'):
-                    xlsm_files.append(file_path)
-                else:
-                    xlsx_files.append(file_path)
-            
-            # Estratégia 2: Priorizar .xlsm para planilha base (geralmente tem macros)
-            for file_path in xlsm_files:
-                filename = os.path.basename(file_path).lower()
-                # Verificar se NÃO é planilha de rentabilidade
-                if not any(keyword in filename for keyword in ['rentabilidade', 'dados de rentabilidade']):
-                    planilha_base = file_path
-                    break
-            
-            # Estratégia 3: Identificar planilha de rentabilidade por palavras-chave específicas
-            for file_path in excel_files:
-                filename = os.path.basename(file_path).lower()
-                if any(keyword in filename for keyword in ['rentabilidade', 'dados de rentabilidade', 'performance']):
-                    planilha_rentabilidade = file_path
-                    break
-            
-            # Estratégia 4: Se ainda não identificou planilha base, usar por exclusão
-            if not planilha_base:
-                for file_path in excel_files:
-                    if file_path != planilha_rentabilidade:
-                        filename = os.path.basename(file_path).lower()
-                        # Verificar se tem características de planilha base
-                        if any(keyword in filename for keyword in ['base', 'cliente', 'inteli']) or filename.endswith('.xlsm'):
-                            planilha_base = file_path
-                            break
-            
-            # Estratégia 5: Fallback - usar os primeiros arquivos encontrados
-            if not planilha_base and len(excel_files) >= 1:
-                # Excluir a planilha de rentabilidade já identificada
-                for file_path in excel_files:
-                    if file_path != planilha_rentabilidade:
-                        planilha_base = file_path
-                        break
-                
-                # Se ainda não tem base, usar o primeiro arquivo
-                if not planilha_base:
-                    planilha_base = excel_files[0]
-            
-            if not planilha_rentabilidade and len(excel_files) >= 2:
-                # Usar arquivo diferente da planilha base
-                for file_path in excel_files:
-                    if file_path != planilha_base:
-                        planilha_rentabilidade = file_path
-                        break
-            
-            # Validar se as planilhas têm as abas necessárias
-            if planilha_base:
-                if MMZRCompatibilidade._validar_abas(planilha_base, ["Base Clientes"]):
-                    logger.info(f"✓ Planilha base validada: {os.path.basename(planilha_base)}")
-                else:
-                    logger.warning(f"⚠ Planilha base pode não ter a aba 'Base Clientes': {os.path.basename(planilha_base)}")
-                    # Se a planilha base não tem a aba correta, tentar trocar
-                    if planilha_rentabilidade and MMZRCompatibilidade._validar_abas(planilha_rentabilidade, ["Base Clientes"]):
-                        logger.info("🔄 Trocando planilhas: rentabilidade tinha a aba 'Base Clientes'")
-                        planilha_base, planilha_rentabilidade = planilha_rentabilidade, planilha_base
-            
-            if planilha_rentabilidade:
-                logger.info(f"✓ Planilha rentabilidade: {os.path.basename(planilha_rentabilidade)}")
-            
-            return planilha_base, planilha_rentabilidade
-            
-        except Exception as e:
-            logger.error(f"Erro na detecção automática de planilhas: {e}")
-            return "", ""
-    
-    @staticmethod
-    def _validar_abas(file_path: str, abas_necessarias: List[str]) -> bool:
-        """
-        Valida se uma planilha Excel tem as abas necessárias.
-        
-        Args:
-            file_path (str): Caminho para o arquivo Excel
-            abas_necessarias (List[str]): Lista de nomes de abas necessárias
-            
-        Returns:
-            bool: True se todas as abas necessárias existem
-        """
-        try:
-            import pandas as pd
-            excel_file = pd.ExcelFile(file_path)
-            sheet_names = excel_file.sheet_names
-            
-            for aba in abas_necessarias:
-                if aba not in sheet_names:
-                    return False
+        # Verificar dados
+        estrutura = MMZRCompatibilidade.verificar_estrutura_dados()
+        if estrutura["status"] == "sucesso":
+            print(f"\nClientes disponíveis: {estrutura['planilha_base']['clientes_total']}")
+            print(f"Registros de rentabilidade: {estrutura['planilha_rentabilidade']['registros_total']}")
+            print("\n✅ Sistema funcionando corretamente")
             return True
-            
-        except Exception:
+        else:
+            print(f"\n❌ Erro: {estrutura['mensagem']}")
             return False
+            
+    except Exception as e:
+        print(f"❌ Erro no sistema: {e}")
+        print("\nDica: Verifique se há arquivos Excel em documentos/dados/")
+        return False
+
+
+def executar_diagnostico_completo():
+    """Executa diagnóstico completo do sistema."""
+    print("=== DIAGNÓSTICO COMPLETO DO SISTEMA MMZR ===\n")
     
-    @staticmethod
-    def enviar_email(destinatario: str, assunto: str, caminho_html: str, anexos: Optional[List[str]] = None) -> bool:
-        """
-        Envia um email usando o Outlook (Windows) ou exibe uma mensagem (macOS).
+    try:
+        # Verificar arquivos
+        print("1. Detectando planilhas...")
+        planilha_base, planilha_rentabilidade = MMZRCompatibilidade.get_planilhas_path()
+        print(f"   Base: {os.path.basename(planilha_base)}")
+        print(f"   Rentabilidade: {os.path.basename(planilha_rentabilidade)}")
         
-        Args:
-            destinatario (str): Email do destinatário
-            assunto (str): Assunto do email
-            caminho_html (str): Caminho para o arquivo HTML do relatório
-            anexos (Optional[List[str]]): Lista de caminhos para arquivos a serem anexados
+        # Teste de compatibilidade
+        print("\n2. Testando compatibilidade...")
+        compativel = MMZRCompatibilidade.testar_compatibilidade()
         
-        Returns:
-            bool: True se o email foi enviado, False caso contrário
-        """
-        try:
-            # Validar parâmetros de entrada
-            if not destinatario or not assunto or not caminho_html:
-                logger.error("Parâmetros obrigatórios não fornecidos para envio de email")
-                return False
-                
-            if not os.path.exists(caminho_html):
-                logger.error(f"Arquivo HTML não encontrado: {caminho_html}")
-                return False
-            
-            # Ler o conteúdo HTML
-            with open(caminho_html, 'r', encoding='utf-8') as f:
-                html_content = f.read()
-            
-            # Verificar o sistema operacional
-            sistema = platform.system()
-            logger.info(f"Enviando email no sistema: {sistema}")
-            
-            if sistema == "Windows":
-                return MMZRCompatibilidade._enviar_email_windows(
-                    destinatario, assunto, html_content, anexos
-                )
-            else:
-                return MMZRCompatibilidade._simular_envio_email(
-                    destinatario, assunto, caminho_html
-                )
-                
-        except Exception as e:
-            logger.error(f"Erro ao enviar email: {e}")
+        if not compativel:
+            print("❌ Sistema não compatível. Verifique os arquivos de planilha.")
             return False
-    
-    @staticmethod
-    def _enviar_email_windows(destinatario: str, assunto: str, html_content: str, anexos: Optional[List[str]]) -> bool:
-        """
-        Cria email como rascunho no Outlook (Windows) para o usuário revisar e enviar.
         
-        Args:
-            destinatario (str): Email do destinatário
-            assunto (str): Assunto do email
-            html_content (str): Conteúdo HTML do email
-            anexos (Optional[List[str]]): Lista de anexos
-            
-        Returns:
-            bool: True se o rascunho foi criado com sucesso
-        """
-        try:
-            import win32com.client
-            
-            # Conectar ao Outlook
-            outlook = win32com.client.Dispatch("Outlook.Application")
-            
-            # Criar novo item de email
-            mail = outlook.CreateItem(0)  # 0 = olMailItem
-            
-            # Configurar o email
-            mail.To = destinatario
-            mail.Subject = assunto
-            mail.HTMLBody = html_content
-            
-            # Adicionar anexos, se houver
-            if anexos:
-                for anexo in anexos:
-                    if os.path.exists(anexo):
-                        mail.Attachments.Add(anexo)
-                        logger.info(f"Anexo adicionado: {anexo}")
-            
-            # Salvar como rascunho ao invés de enviar
-            mail.Save()
-            
-            # Mostrar o email para o usuário revisar (opcional)
-            mail.Display()
-            
-            logger.info(f"Email criado como rascunho no Outlook para {destinatario}")
-            logger.info("O usuário pode revisar e enviar manualmente")
-            return True
-            
-        except ImportError:
-            logger.error("win32com não está instalado. Instale com: pip install pywin32")
-            logger.info(f"Email seria criado para {destinatario}")
-            return False
-        except Exception as e:
-            logger.error(f"Erro ao criar email no Outlook: {e}")
-            logger.info("Possíveis soluções:")
-            logger.info("1. Verificar se o Outlook está instalado")
-            logger.info("2. Executar o script como administrador")
-            logger.info("3. Instalar pywin32: pip install pywin32")
-            return False
-    
-    @staticmethod
-    def _simular_envio_email(destinatario: str, assunto: str, caminho_html: str) -> bool:
-        """
-        Simula o envio de email em sistemas não-Windows.
+        # Verificar estrutura de dados
+        print("\n3. Verificando estrutura de dados...")
+        estrutura = MMZRCompatibilidade.verificar_estrutura_dados()
         
-        Args:
-            destinatario (str): Email do destinatário
-            assunto (str): Assunto do email
-            caminho_html (str): Caminho do arquivo HTML
-            
-        Returns:
-            bool: Sempre True (simulação)
-        """
-        logger.info(f"[SIMULAÇÃO] Email enviado para {destinatario}")
-        logger.info(f"  Assunto: {assunto}")
-        logger.info(f"  Arquivo HTML: {caminho_html}")
+        if estrutura["status"] == "erro":
+            print(f"❌ Erro na estrutura: {estrutura['mensagem']}")
+            return False
+        
+        print(f"✅ Base: {estrutura['planilha_base']['clientes_total']} clientes")
+        print(f"✅ Rentabilidade: {estrutura['planilha_rentabilidade']['registros_total']} registros")
+        
+        print("\n✅ DIAGNÓSTICO CONCLUÍDO - Sistema funcional!")
         return True
-    
-    @staticmethod
-    def testar_compatibilidade() -> Dict[str, Union[str, bool]]:
-        """
-        Testa a compatibilidade entre Mac e Windows.
         
-        Returns:
-            Dict[str, Union[str, bool]]: Resultado dos testes de compatibilidade
-        """
-        try:
-            info = MMZRCompatibilidade.get_os_info()
-            logger.info("\n=== TESTE DE COMPATIBILIDADE ===")
-            logger.info(f"Sistema operacional: {info['sistema']}")
-            logger.info(f"Versão: {info['versao']}")
-            logger.info(f"Python: {info['python']}")
-            
-            # Testar caminhos
-            planilha_base, planilha_rentabilidade = MMZRCompatibilidade.get_planilhas_path()
-            
-            logger.info("\nVerificando caminhos de arquivos:")
-            base_exists = os.path.exists(planilha_base)
-            rent_exists = os.path.exists(planilha_rentabilidade)
-            
-            logger.info(f"1. Planilha base: {planilha_base}")
-            logger.info(f"   Existe: {base_exists}")
-            
-            logger.info(f"2. Planilha rentabilidade: {planilha_rentabilidade}")
-            logger.info(f"   Existe: {rent_exists}")
-            
-            # Testar disponibilidade do win32com
-            outlook_ok = True
-            if info['sistema'] == "Windows":
-                logger.info("\nTestando integração com Outlook:")
-                outlook_ok = MMZRCompatibilidade._check_win32com()
-                if outlook_ok:
-                    logger.info("✓ win32com está disponível para integração com Outlook")
-                else:
-                    logger.error("✗ win32com não está instalado. A integração com Outlook não funcionará")
-            else:
-                logger.info("\nSistema não é Windows, win32com não será utilizado")
-                logger.info("✓ Sistema de email simulado disponível para desenvolvimento")
-            
-            logger.info("\n=== TESTE CONCLUÍDO ===")
-            
-            return {
-                "sistema": info['sistema'],
-                "paths_ok": base_exists and rent_exists,
-                "outlook_ok": outlook_ok
-            }
-            
-        except Exception as e:
-            logger.error(f"Erro durante teste de compatibilidade: {e}")
-            return {"sistema": "Erro", "paths_ok": False, "outlook_ok": False}
-    
-    @staticmethod
-    def _check_win32com() -> bool:
-        """
-        Verifica se win32com está disponível (apenas para Windows).
-        
-        Returns:
-            bool: True se win32com estiver disponível
-        """
-        try:
-            import win32com.client
-            return True
-        except ImportError:
-            return False
+    except Exception as e:
+        print(f"❌ Erro no diagnóstico: {e}")
+        return False
 
 
-# Executar o teste quando o arquivo for executado diretamente
+# Interface de linha de comando
 if __name__ == "__main__":
-    MMZRCompatibilidade.testar_compatibilidade() 
+    import sys
+    
+    if len(sys.argv) > 1:
+        comando = sys.argv[1]
+        
+        if comando == "--diagnostico":
+            executar_diagnostico_completo()
+        elif comando == "--status":
+            verificar_status_sistema()
+        elif comando == "--testar":
+            compativel = MMZRCompatibilidade.testar_compatibilidade()
+            sys.exit(0 if compativel else 1)
+        else:
+            print("Comandos disponíveis:")
+            print("  --diagnostico  : Executa diagnóstico completo")
+            print("  --status       : Mostra status do sistema")
+            print("  --testar       : Testa compatibilidade básica")
+    else:
+        # Por padrão, mostrar status
+        verificar_status_sistema() 
