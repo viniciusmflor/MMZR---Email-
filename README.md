@@ -1,113 +1,87 @@
-# MMZR Family Office - Gerador de Relatórios
+# MMZR Family Office - Sistema de Relatórios
 
-Sistema automatizado para gerar relatórios HTML de performance de carteiras de investimento.
+Sistema automatizado para geração de relatórios HTML de performance de carteiras de investimento.
+
+**Versão:** 1.0.0  
+**Autor:** MMZR Family Office  
+
+## Como Usar
+
+### Para não técnicos - estagiários (Recomendado)
+1. Duplo clique em `iniciar_mmzr.bat`
+2. Selecione o cliente na lista
+3. Clique em "Gerar Relatório"
+
+### Para Técnicos (manipulação pelo terminal)
+```bash
+# Listar clientes
+python gerador.py --listar
+
+# Gerar relatório
+python gerador.py --cliente "Nome do Cliente"
+
+# Com email
+python gerador.py --cliente "Nome do Cliente" --enviar
+```
 
 ## Instalação
 
-1. Instalar dependências:
+1. Instalar Python 3.8+
+2. Instalar dependências:
 ```bash
 pip install -r requirements.txt
 ```
+3. Colocar planilhas Excel em `documentos/dados/`
 
-2. Colocar as planilhas Excel na pasta:
-```
-documentos/dados/
-├── qualquer_nome_clientes.xlsm     # Planilha com aba "Base Clientes"
-└── qualquer_nome_rentabilidade.xlsx # Planilha com dados de performance
-```
+## Estrutura de Planilhas
 
-O sistema detecta automaticamente qual planilha é qual baseado no conteúdo.
+**Planilha Base:** Deve ter aba "Base Clientes"
+- Colunas: Nome cliente, Código carteira smart, Nome carteira, Estratégia carteira
 
-## Uso Básico
+**Planilha Rentabilidade:** Dados de performance
+- Rentabilidade Carteira (Mês/Ano), Benchmark (Mês/Ano), Variação Relativa
 
-### Gerar relatório para um cliente específico
+## Verificação do Sistema
+
 ```bash
-python mmzr_integracao_real.py --cliente "Nome do Cliente"
-```
+# Status rápido
+python diagnostico.py --status
 
-### Ver todos os clientes disponíveis
-```bash
-python mmzr_integracao_real.py --listar
-```
-
-### Gerar relatórios para todos os clientes
-```bash
-python mmzr_integracao_real.py
-```
-
-## Verificar Sistema
-
-### Ver status e planilhas detectadas
-```bash
-python mmzr_compatibilidade.py --status
-```
-
-### Executar diagnóstico completo
-```bash
-python mmzr_compatibilidade.py --diagnostico
+# Diagnóstico completo
+python diagnostico.py --diagnostico
 ```
 
 ## Arquivos Gerados
 
-Os relatórios são salvos como arquivos HTML na pasta principal:
-- `relatorio_mensal_Cliente_YYYYMMDD.html`
+- **Local:** Pasta principal do projeto
+- **Formato:** `relatorio_mensal_NomeCliente_YYYYMMDD.html`
 
-## Detecção Automática
+## Resolução de Problemas
 
-O sistema identifica as planilhas automaticamente:
+**Erro "Nenhum cliente encontrado":**
+- Verificar arquivos Excel em `documentos/dados/`
+- Executar `python diagnostico.py --diagnostico`
 
-**Planilha Base**: Aquela que contém a aba "Base Clientes"
-- Deve ter aba "Base Clientes" com dados dos clientes e carteiras
-- Pode ter aba "Base Consolidada" com informações dos bankers
+**Interface não abre:**
+- Executar `iniciar_mmzr.bat` na pasta correta do projeto
 
-**Planilha Rentabilidade**: A outra planilha Excel na pasta
-- Contém dados de performance, estratégias e ativos
+**Python não encontrado:**
+- Instalar Python 3.8+ e marcar "Add to PATH"
 
-**Nomes de arquivo**: Podem ser qualquer um (ex: `dados.xlsx`, `clientes.xlsm`, etc.)
+## Estrutura do Projeto
 
-## Solução de Problemas
-
-### "Nenhum arquivo Excel encontrado"
-Verifique se há arquivos `.xlsx`, `.xlsm` ou `.xls` em `documentos/dados/`
-
-### "Cliente não encontrado"
-Verifique se o nome está correto usando `--listar`
-
-### "Aba 'Base Clientes' não encontrada"
-Uma das planilhas deve ter a aba "Base Clientes" com dados dos clientes
-
-## Envio por Email
-
-No Windows com Outlook instalado, adicione `--enviar`:
-```bash
-python mmzr_integracao_real.py --cliente "Nome do Cliente" --enviar
+```
+MMZR-Email/
+├── app.py                 # Interface gráfica principal
+├── gerador.py             # Sistema de geração de relatórios
+├── html_generator.py      # Gerador de HTML
+├── diagnostico.py         # Verificação do sistema
+├── iniciar_mmzr.bat      # Script de inicialização
+└── documentos/dados/      # Planilhas Excel
 ```
 
-Isso criará um rascunho no Outlook para revisão antes do envio.
+Para informações detalhadas, consulte `MANUAL.md`.
 
-## Estrutura dos Relatórios
+---
 
-Cada relatório inclui:
-- Performance mensal e anual vs benchmark
-- Retorno financeiro em reais
-- Estratégias de destaque
-- Ativos promotores e detratores
-- Informações dos bankers responsáveis
-
-## Exemplo de Uso
-
-```bash
-# Ver status e planilhas detectadas
-python mmzr_compatibilidade.py --status
-
-# Ver clientes disponíveis
-python mmzr_integracao_real.py --listar
-
-# Gerar relatório para cliente específico
-python mmzr_integracao_real.py --cliente "João Silva"
-
-# Gerar e preparar email (Windows)
-python mmzr_integracao_real.py --cliente "João Silva" --enviar
-```
-
-O sistema funciona com qualquer nome de planilha, detectando automaticamente qual é qual baseado no conteúdo. 
+**MMZR Family Office | Desenvolvido para Windows** 

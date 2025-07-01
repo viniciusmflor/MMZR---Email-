@@ -3,7 +3,7 @@ MMZR Family Office - Gerador de Relatórios de Performance
 Versão Final - Sistema de geração de relatórios HTML para clientes
 
 Autor: MMZR Family Office
-Versão: 3.0.0
+Versão: 1.0.0
 """
 
 import os
