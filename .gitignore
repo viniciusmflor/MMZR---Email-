@@ -1,0 +1,49 @@
+# MMZR Family Office - Arquivos Ignorados
+# Versao 1.0.0
+
+# Cache Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Arquivos temporarios
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# Logs
+*.log
+logs/
+
+# Arquivos de sistema
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Ambiente virtual Python
+venv/
+env/
+.venv/
+.env/
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-*
+
+# Relatorios HTML gerados (comentar se quiser versionar)
+relatorio_mensal_*.html
+
+# Arquivos de teste
+test_*.py
+*_test.py 

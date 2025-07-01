@@ -1,86 +1,87 @@
 @echo off
-setlocal enabledelayedexpansion
 title MMZR Family Office - Sistema de Relatorios v1.0
+color 0F
+cls
 
 echo.
 echo ===============================================
-echo    MMZR Family Office - Sistema de Relatorios
-echo              Versao 1.0.0
+echo   MMZR FAMILY OFFICE - SISTEMA DE RELATORIOS
+echo ===============================================
+echo   Versao: 1.0.0
+echo   Plataforma: Windows (Microsoft Outlook)
 echo ===============================================
 echo.
 
-REM Verificar se estamos no diretorio correto
-if not exist "documentos" (
-    echo ERRO: Execute este arquivo na pasta raiz do projeto MMZR
-    echo       A pasta deve conter o diretorio 'documentos'
-    echo.
-    pause
-    exit /b 1
-)
+echo Verificando ambiente Python...
 
-REM Verificar se Python esta instalado
-echo Verificando instalacao do Python...
 python --version >nul 2>&1
 if errorlevel 1 (
-    echo ERRO: Python nao encontrado no sistema
+    echo ERRO: Python nao foi encontrado no sistema
     echo.
-    echo Para instalar o Python:
-    echo 1. Acesse: https://www.python.org/downloads/
-    echo 2. Baixe a versao mais recente do Python 3
-    echo 3. Execute o instalador e marque "Add to PATH"
-    echo 4. Reinicie o computador apos a instalacao
+    echo Por favor:
+    echo 1. Instale Python 3.8+ do site python.org
+    echo 2. Marque a opcao "Add Python to PATH" durante instalacao
+    echo 3. Reinicie o computador
+    echo 4. Execute este arquivo novamente
     echo.
     pause
     exit /b 1
 )
 
-echo Python encontrado com sucesso.
+for /f "tokens=*" %%i in ('python --version') do set PYTHON_VERSION=%%i
+echo Encontrado: %PYTHON_VERSION%
 
-REM Verificar dependencias
-echo Verificando dependencias do sistema...
+echo.
+echo Verificando dependencias...
+
 python -c "import pandas, openpyxl, tkinter" >nul 2>&1
 if errorlevel 1 (
+    echo AVISO: Algumas dependencias podem estar faltando
+    echo Tentando instalar automaticamente...
     echo.
-    echo AVISO: Algumas dependencias nao estao instaladas
-    echo Instalando dependencias necessarias...
-    echo.
-    
     pip install -r requirements.txt
     if errorlevel 1 (
-        echo.
         echo ERRO: Falha na instalacao das dependencias
-        echo Tente executar manualmente: pip install -r requirements.txt
+        echo Execute manualmente: pip install -r requirements.txt
         echo.
         pause
         exit /b 1
     )
-    
-    echo Dependencias instaladas com sucesso.
+    echo Dependencias instaladas com sucesso
+) else (
+    echo Dependencias verificadas - OK
 )
 
-echo Sistema pronto para execucao.
 echo.
-echo Iniciando interface grafica...
-echo Aguarde alguns segundos para a janela aparecer...
-echo.
+echo Verificando arquivos do sistema...
 
-REM Executar a interface grafica
-python app.py
-
-REM Verificar se houve erro na execucao
-if errorlevel 1 (
-    echo.
-    echo ERRO: Falha na execucao da aplicacao
-    echo.
-         echo Possiveis solucoes:
-     echo 1. Verificar se todas as planilhas estao na pasta documentos/dados/
-     echo 2. Executar diagnostico: python diagnostico.py --diagnostico
-     echo 3. Reinstalar dependencias: pip install -r requirements.txt
+if not exist app.py (
+    echo ERRO: Arquivo app.py nao encontrado
+    echo Certifique-se de estar na pasta correta do projeto MMZR
     echo.
     pause
-) else (
-    echo.
-    echo Aplicacao encerrada normalmente.
+    exit /b 1
 )
 
-endlocal 
+if not exist documentos\ (
+    echo ERRO: Pasta documentos nao encontrada
+    echo Certifique-se de estar na pasta correta do projeto MMZR
+    echo.
+    pause
+    exit /b 1
+)
+
+echo Arquivos do sistema - OK
+
+echo.
+echo Inicializando interface grafica...
+echo.
+
+python app.py
+
+echo.
+echo ===============================================
+echo   Sistema encerrado
+echo ===============================================
+echo.
+pause 

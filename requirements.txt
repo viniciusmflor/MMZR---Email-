@@ -1,8 +1,7 @@
-# MMZR Family Office - Dependências do Sistema
-# Sistema de Relatórios Financeiros v1.0.0
-# Compatível com Python 3.8+
+# MMZR Family Office - Dependencias do Sistema
+# Versao 1.0.0 - Compativel com Python 3.8+
 
-# Análise e manipulação de dados
+# Analise e manipulacao de dados
 pandas>=2.0.0,<3.0.0
 
 # Leitura e escrita de arquivos Excel
@@ -11,11 +10,11 @@ openpyxl>=3.1.0,<4.0.0
 # Processamento de datas e tempo
 python-dateutil>=2.8.0,<3.0.0
 
+# Integracao com Windows/Outlook (Windows apenas)
+pywin32>=306; sys_platform == "win32"
+
 # Interface gráfica (incluso no Python, mas listado para referência)
 # tkinter - Biblioteca padrão do Python
-
-# Integração com Windows/Outlook (apenas Windows)
-pywin32>=306; sys_platform == "win32"
 
 # Logging e utilitários (bibliotecas padrão, listadas para documentação)
 # logging - Biblioteca padrão do Python
