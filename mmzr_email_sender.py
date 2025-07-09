@@ -2,8 +2,17 @@
 MMZR Family Office - Modulo de Integracao com Microsoft Outlook
 Sistema de envio automatizado de emails via Outlook
 
-Versao: 1.0.0
+Versao: 1.0.1
 Plataforma: Windows (Microsoft Outlook)
+
+IMPORTANTE: Este modulo utiliza COM (Component Object Model) para interagir
+com o Microsoft Outlook. As funcoes inicializam e finalizam o COM automaticamente
+para evitar o erro "CoInitialize não foi chamado".
+
+Requisitos:
+- Windows com Microsoft Outlook instalado e configurado
+- pywin32: pip install pywin32
+- pythoncom (incluido no pywin32)
 """
 
 import os
@@ -52,48 +61,57 @@ def _enviar_email_outlook_windows(para, assunto, corpo_html, anexos, copia, copi
     """Envia email usando Microsoft Outlook no Windows."""
     try:
         import win32com.client
+        import pythoncom
+        
+        # Inicializar COM para evitar erro "CoInitialize não foi chamado"
+        pythoncom.CoInitialize()
         
         logger.info("Conectando ao Microsoft Outlook...")
         
-        # Conectar ao Outlook
-        outlook = win32com.client.Dispatch("Outlook.Application")
-        
-        # Criar novo email
-        mail = outlook.CreateItem(0)  # 0 = olMailItem
-        
-        # Configurar destinatarios
-        mail.To = para
-        if copia:
-            mail.CC = copia
-        if copia_oculta:
-            mail.BCC = copia_oculta
+        try:
+            # Conectar ao Outlook
+            outlook = win32com.client.Dispatch("Outlook.Application")
             
-        # Configurar conteudo
-        mail.Subject = assunto
-        mail.HTMLBody = corpo_html
-        
-        # Adicionar anexos se fornecidos
-        if anexos:
-            for anexo in anexos:
-                if os.path.exists(anexo):
-                    mail.Attachments.Add(anexo)
-                    logger.info(f"Anexo adicionado: {anexo}")
-                else:
-                    logger.warning(f"Anexo nao encontrado: {anexo}")
-        
-        # Exibir email (nao enviar automaticamente)
-        mail.Display(False)
-        
-        logger.info(f"Email preparado com sucesso no Outlook para {para}")
-        print(f"Email preparado no Microsoft Outlook para: {para}")
-        print(f"  - Assunto: {assunto}")
-        print(f"  - Destinatario: {para}")
-        if copia:
-            print(f"  - Copia: {copia}")
-        if anexos:
-            print(f"  - Anexos: {len(anexos)} arquivo(s)")
-        
-        return True
+            # Criar novo email
+            mail = outlook.CreateItem(0)  # 0 = olMailItem
+            
+            # Configurar destinatarios
+            mail.To = para
+            if copia:
+                mail.CC = copia
+            if copia_oculta:
+                mail.BCC = copia_oculta
+                
+            # Configurar conteudo
+            mail.Subject = assunto
+            mail.HTMLBody = corpo_html
+            
+            # Adicionar anexos se fornecidos
+            if anexos:
+                for anexo in anexos:
+                    if os.path.exists(anexo):
+                        mail.Attachments.Add(anexo)
+                        logger.info(f"Anexo adicionado: {anexo}")
+                    else:
+                        logger.warning(f"Anexo nao encontrado: {anexo}")
+            
+            # Exibir email (nao enviar automaticamente)
+            mail.Display(False)
+            
+            logger.info(f"Email preparado com sucesso no Outlook para {para}")
+            print(f"Email preparado no Microsoft Outlook para: {para}")
+            print(f"  - Assunto: {assunto}")
+            print(f"  - Destinatario: {para}")
+            if copia:
+                print(f"  - Copia: {copia}")
+            if anexos:
+                print(f"  - Anexos: {len(anexos)} arquivo(s)")
+            
+            return True
+            
+        finally:
+            # Finalizar COM adequadamente
+            pythoncom.CoUninitialize()
         
     except ImportError:
         error_msg = "Modulo pywin32 nao instalado. Execute: pip install pywin32"
@@ -111,6 +129,7 @@ def _enviar_email_outlook_windows(para, assunto, corpo_html, anexos, copia, copi
         print("2. Verificar se o Outlook esta configurado com uma conta")
         print("3. Executar como administrador se necessario")
         print("4. Fechar e reabrir o Outlook")
+        print("5. Reiniciar o Windows se o problema persistir")
         return False
 
 
@@ -171,9 +190,19 @@ def verificar_outlook_disponivel() -> bool:
     """
     try:
         import win32com.client
-        outlook = win32com.client.Dispatch("Outlook.Application")
-        logger.info("Microsoft Outlook disponivel e funcionando")
-        return True
+        import pythoncom
+        
+        # Inicializar COM para evitar erro "CoInitialize não foi chamado"
+        pythoncom.CoInitialize()
+        
+        try:
+            outlook = win32com.client.Dispatch("Outlook.Application")
+            logger.info("Microsoft Outlook disponivel e funcionando")
+            return True
+        finally:
+            # Finalizar COM adequadamente
+            pythoncom.CoUninitialize()
+            
     except ImportError:
         logger.warning("pywin32 nao instalado - instale com: pip install pywin32")
         return False

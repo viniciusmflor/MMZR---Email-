@@ -3,7 +3,7 @@ MMZR Family Office - Gerador de Relatórios de Performance
 Versão Final - Sistema de geração de relatórios HTML para clientes
 
 Autor: MMZR Family Office
-Versão: 1.0.0
+Versão: 1.0.1 - Correção de compatibilidade com Microsoft Outlook
 """
 
 import os
@@ -254,8 +254,19 @@ class MMZREmailGenerator:
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light">
+    <!--[if mso]>
+    <xml>
+        <o:OfficeDocumentSettings>
+            <o:AllowPNG/>
+            <o:PixelsPerInch>96</o:PixelsPerInch>
+        </o:OfficeDocumentSettings>
+    </xml>
+    <![endif]-->
     <style>
-    .mmzr-logo {{ width: 90px !important; height: 75px !important; max-width: 90px !important; max-height: 75px !important; display: inline-block !important; object-fit: contain !important; border: none !important; outline: none !important; }}
+    /* CSS específico para Outlook */
+    .mmzr-logo {{ width: 120px; height: 60px; max-width: 120px; max-height: 60px; }}
+    img {{ border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }}
+    table {{ border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }}
     :root {{ color-scheme: light; supported-color-schemes: light; }}
     @media (prefers-color-scheme: dark) {{
         body, .body-wrapper {{ background-color: #f4f4f4 !important; }}
@@ -274,24 +285,24 @@ class MMZREmailGenerator:
     }}
     </style>
 </head>
-<body class="body-wrapper" style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif; line-height: 1.4; color: #333333; background-color: #f4f4f4;">
-    <table role="presentation" style="width: 100%; border-collapse: collapse; border: 0; border-spacing: 0; background: #f4f4f4;">
+<body class="body-wrapper" style="margin: 0; padding: 0; font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; line-height: 1.4; color: #333333; background-color: #f4f4f4;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%; border-collapse: collapse; background: #f4f4f4; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
         <tr>
             <td align="center" style="padding: 0;">
-                <table role="presentation" class="content-wrapper" style="width: 100%; max-width: 800px; border-collapse: collapse; border: 0; border-spacing: 0; text-align: left; background: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" class="content-wrapper" style="width: 100%; max-width: 800px; border-collapse: collapse; text-align: left; background: #ffffff; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
                     <tr>
                         <td style="padding: 0;">
-                            <table role="presentation" class="header-bg" style="width: 100%; border-collapse: collapse; background: #0D2035;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" class="header-bg" style="width: 100%; border-collapse: collapse; background: #0D2035; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
                                 <tr>
-                                    <td style="padding: 4px;">
-                                        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                    <td style="padding: 12px 16px;">
+                                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
                                             <tr>
-                                                <td style="text-align: center; vertical-align: middle; width: 90px;">
-                                                    {f'<img src="{self.logo_base64}" alt="MMZR Family Office" class="mmzr-logo logo" style="width: 90px !important; height: 75px !important; max-width: 90px !important; max-height: 75px !important; display: inline-block; object-fit: contain; border: none; outline: none;">' if self.logo_base64 else '<div style="width: 90px; height: 75px; display: inline-block; background-color: #ffffff; border: 2px solid #0D2035; border-radius: 8px; color: #0D2035; font-weight: bold; font-size: 12px; text-align: center; line-height: 1.2; padding: 15px 0;">MMZR<br>Family<br>Office</div>'}
+                                                <td style="width: 120px; vertical-align: top; text-align: center;">
+                                                    {f'<img src="{self.logo_base64}" alt="MMZR Family Office" width="120" height="60" style="width: 120px; height: 60px; max-width: 120px; display: block; border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;">' if self.logo_base64 else '<div style="width: 120px; height: 60px; display: block; background-color: #ffffff; border: 2px solid #ffffff; border-radius: 6px; color: #0D2035; font-weight: bold; font-size: 10px; text-align: center; line-height: 1.1; padding-top: 12px;">MMZR<br>Family<br>Office</div>'}
                                                 </td>
-                                                <td style="text-align: left; vertical-align: middle; padding-left: 8px;">
-                                                    <p class="header-text" style="margin: 0; font-size: 16px; color: #ffffff; opacity: 0.9; line-height: 1.2;">MMZR Family Office</p>
-                                                    <p class="header-text" style="margin: 0; font-size: 11px; color: #ffffff; opacity: 0.9; line-height: 1.2;">Relatório Mensal de Performance - {mes} de {ano}</p>
+                                                <td style="vertical-align: top; padding-left: 16px;">
+                                                    <h1 class="header-text" style="margin: 0 0 4px 0; font-size: 18px; font-weight: bold; color: #ffffff; line-height: 1.2; font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;">MMZR Family Office</h1>
+                                                    <p class="header-text" style="margin: 0; font-size: 13px; color: #ffffff; opacity: 0.85; line-height: 1.3; font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;">Relatório Mensal de Performance<br>{mes} de {ano}</p>
                                                 </td>
                                             </tr>
                                         </table>
